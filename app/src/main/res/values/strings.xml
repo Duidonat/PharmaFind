@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">PharmaFind</string>
+    <string name="log_in">Log In</string>
+    <string name="register">Register</string>
+    <string name="medicine_locator">MEDICINE LOCATOR</string>
+    <string name="pharma_find">PharmaFind</string>
+    <string name="description">Find real-time medicine availability at pharmacies near you.</string>
+    <string name="get_started">Get Started</string>
+    <string name="already_have_account">Already have an account? </string>
+    <string name="logo_description">PharmaFind Logo</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="remember_me">Remember me</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="or">or</string>
+    <string name="sign_in_with_google">Sign in with google</string>
+    <string name="register_as">Register as</string>
+    <string name="customer">Customer</string>
+    <string name="pharmacy">Pharmacy</string>
+    <string name="first_name">First Name</string>
+    <string name="surname">Surname</string>
+    <string name="middle_initial">Middle Initial</string>
+    <string name="city">City</string>
+    <string name="barangay">Barangay</string>
+    <string name="age">Age</string>
+    <string name="birth_date">Birth Date</string>
+    <string name="email">Email</string>
+    <string name="contact">Contact</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="pharmacy_name">Pharmacy Name</string>
+    <string name="register_customer">Register Customer</string>
+    <string name="register_pharmacy">Register Pharmacy</string>
+</resources>
