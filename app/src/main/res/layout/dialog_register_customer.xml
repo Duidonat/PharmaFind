@@ -73,6 +73,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="textPersonName" />
 
                 <TextView
@@ -90,6 +91,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="textPersonName" />
 
                 <TextView
@@ -107,6 +109,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="text" />
 
                 <TextView
@@ -124,6 +127,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="text" />
 
                 <TextView
@@ -141,6 +145,25 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
+                    android:inputType="text" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/district"
+                    android:textColor="@color/black"
+                    android:textSize="14sp" />
+
+                <EditText
+                    android:id="@+id/etDistrict"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/edittext_background"
+                    android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="text" />
 
                 <TextView
@@ -158,6 +181,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="number" />
 
                 <TextView
@@ -175,7 +199,11 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
-                    android:inputType="date" />
+                    android:textColor="@color/black"
+                    android:focusable="false"
+                    android:clickable="true"
+                    android:hint="YYYY-MM-DD"
+                    android:textColorHint="@color/text_gray" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -192,6 +220,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="textEmailAddress" />
 
                 <TextView
@@ -209,6 +238,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="phone" />
 
                 <TextView
@@ -226,6 +256,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="text" />
 
                 <TextView
@@ -243,6 +274,7 @@
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="textPassword" />
 
                 <TextView
@@ -260,6 +292,7 @@
                     android:layout_marginBottom="24dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
+                    android:textColor="@color/black"
                     android:inputType="textPassword" />
 
                 <com.google.android.material.button.MaterialButton

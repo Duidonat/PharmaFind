@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:padding="20dp">
+
+    <!-- Top Composer Header -->
+    <TextView
+        android:id="@+id/tvComposerTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Medicine Request"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+        android:id="@+id/btnCloseDialog"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Close"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:tint="@color/text_gray"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- User Info Row -->
+    <LinearLayout
+        android:id="@+id/userInfoRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/tvComposerTitle">
+
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="@color/primary_teal"
+            android:padding="6dp"
+            android:src="@android:drawable/ic_menu_myplaces"
+            app:tint="@color/white" />
+
+        <TextView
+            android:id="@+id/tvAuthorName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:text="Juan Dela Cruz"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Medicine Name Field -->
+    <EditText
+        android:id="@+id/etMedicineName"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/edittext_background"
+        android:hint="Medicine Name (e.g., Biogesic 500mg)"
+        android:inputType="text"
+        android:paddingHorizontal="12dp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/text_gray"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/userInfoRow" />
+
+    <!-- Description Field -->
+    <EditText
+        android:id="@+id/etDescription"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/edittext_background"
+        android:gravity="top|start"
+        android:hint="Describe quantity or urgency (e.g., Need 1 strip of 10 tablets urgently in Barangay Marawoy)..."
+        android:inputType="textMultiLine"
+        android:padding="12dp"
+        android:textColor="@color/black"
+        android:textColorHint="@color/text_gray"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/etMedicineName" />
+
+    <!-- Photo Preview Container -->
+    <FrameLayout
+        android:id="@+id/photoPreviewContainer"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_marginTop="12dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/etDescription">
+
+        <ImageView
+            android:id="@+id/ivAttachedPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+
+        <ImageButton
+            android:id="@+id/btnRemovePhoto"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="8dp"
+            android:background="@drawable/circle_background"
+            android:backgroundTint="#80000000"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            app:tint="@color/white" />
+
+    </FrameLayout>
+
+    <!-- Attachment & Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/photoPreviewContainer">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddPhoto"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="📷 Add Photo"
+            android:textAllCaps="false"
+            android:textColor="@color/primary_teal"
+            app:strokeColor="@color/primary_teal" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPostInquiry"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Post Inquiry"
+            android:textAllCaps="false"
+            app:backgroundTint="@color/primary_teal"
+            app:cornerRadius="24dp" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
