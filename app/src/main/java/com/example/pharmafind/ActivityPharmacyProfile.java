@@ -3,11 +3,16 @@ package com.example.pharmafind;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.button.MaterialButton;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +20,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ActivityPharmacyProfile extends AppCompatActivity {
 
@@ -27,6 +34,9 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
     private String contactPhone = "";
     private double pharmacyLat = 0.0;
     private double pharmacyLng = 0.0;
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +54,16 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
 
         ImageButton btnBack = findViewById(R.id.btnBackPharmacyProfile);
         btnBack.setOnClickListener(v -> finish());
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            if (btnBack.getLayoutParams() instanceof android.view.ViewGroup.MarginLayoutParams) {
+                android.view.ViewGroup.MarginLayoutParams params = (android.view.ViewGroup.MarginLayoutParams) btnBack.getLayoutParams();
+                params.topMargin = systemBars.top + 16;
+                btnBack.setLayoutParams(params);
+            }
+            return insets;
+        });
 
         tvPharmacyNameTitle = findViewById(R.id.tvPharmacyNameTitle);
         tvPharmacyAddress = findViewById(R.id.tvPharmacyAddress);
@@ -73,10 +93,8 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
         try {
             Uri mapUri;
             if (pharmacyLat != 0.0 && pharmacyLng != 0.0) {
-                // If coordinates exist, launch direct navigation / single marker mode
                 mapUri = Uri.parse("google.navigation:q=" + pharmacyLat + "," + pharmacyLng);
             } else {
-                // Fallback to address query
                 String encodedAddress = URLEncoder.encode(fullAddressForMaps, StandardCharsets.UTF_8.name());
                 mapUri = Uri.parse("geo:0,0?q=" + encodedAddress);
             }
@@ -87,7 +105,6 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
             if (mapIntent.resolveActivity(getPackageManager()) != null) {
                 startActivity(mapIntent);
             } else {
-                // Fallback web browser intent
                 String query = (pharmacyLat != 0.0 && pharmacyLng != 0.0)
                         ? pharmacyLat + "," + pharmacyLng
                         : URLEncoder.encode(fullAddressForMaps, StandardCharsets.UTF_8.name());
@@ -101,50 +118,68 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
     }
 
     private void loadPharmacyDetails() {
-        Connection con = sqlHelper.conclass();
-        if (con == null) return;
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
 
-        try {
-            String query = "SELECT PharmacyName, City, Barangay, District, Email, Contact, Status, Latitude, Longitude, OperatingHours, Bio FROM dbo.Pharmacies WHERE PharmacyID = ?";
-            PreparedStatement stmt = con.prepareStatement(query);
-            stmt.setInt(1, pharmacyId);
-            ResultSet rs = stmt.executeQuery();
+            try {
+                String query = "SELECT PharmacyName, City, Barangay, District, Email, Contact, Status, Latitude, Longitude, OperatingHours, Bio FROM dbo.Pharmacies WHERE PharmacyID = ?";
+                PreparedStatement stmt = con.prepareStatement(query);
+                stmt.setInt(1, pharmacyId);
+                ResultSet rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                String name = rs.getString("PharmacyName");
-                String city = rs.getString("City");
-                String barangay = rs.getString("Barangay");
-                String district = rs.getString("District");
-                String email = rs.getString("Email");
-                contactPhone = rs.getString("Contact");
-                String status = rs.getString("Status");
-                pharmacyLat = rs.getDouble("Latitude");
-                pharmacyLng = rs.getDouble("Longitude");
-                String hours = rs.getString("OperatingHours");
-                String bio = rs.getString("Bio");
+                if (rs.next()) {
+                    String name = rs.getString("PharmacyName");
+                    String city = rs.getString("City");
+                    String barangay = rs.getString("Barangay");
+                    String district = rs.getString("District");
+                    String email = rs.getString("Email");
+                    String phone = rs.getString("Contact");
+                    String status = rs.getString("Status");
+                    double lat = rs.getDouble("Latitude");
+                    double lng = rs.getDouble("Longitude");
+                    String hours = rs.getString("OperatingHours");
+                    String bio = rs.getString("Bio");
 
-                if (city == null) city = "";
-                if (barangay == null) barangay = "";
-                if (district == null) district = "";
-                if (contactPhone == null) contactPhone = "";
+                    if (city == null) city = "";
+                    if (barangay == null) barangay = "";
+                    if (district == null) district = "";
+                    String finalPhone = (phone != null) ? phone : "";
 
-                tvPharmacyNameTitle.setText(name != null ? name : "Pharmacy");
+                    final String finalCity = city;
+                    final String finalBarangay = barangay;
+                    final String finalDistrict = district;
 
-                String addressStr = "Barangay " + barangay + ", " + city;
-                if (!district.isEmpty()) addressStr += " (" + district + ")";
-                tvPharmacyAddress.setText("📍 " + addressStr);
+                    mainHandler.post(() -> {
+                        contactPhone = finalPhone;
+                        pharmacyLat = lat;
+                        pharmacyLng = lng;
 
-                fullAddressForMaps = name + " Pharmacy, Barangay " + barangay + ", " + city + ", Philippines";
+                        tvPharmacyNameTitle.setText(name != null ? name : "Pharmacy");
 
-                tvContactInfo.setText("Phone: " + (contactPhone.isEmpty() ? "N/A" : contactPhone));
-                tvEmailInfo.setText("Email: " + (email != null ? email : "N/A"));
-                tvOperatingHours.setText("Operating Hours: " + (hours != null && !hours.isEmpty() ? hours : "8:00 AM - 9:00 PM"));
-                tvStatusInfo.setText("Status: " + (status != null ? status.toUpperCase() : "VERIFIED"));
+                        String addressStr = "Barangay " + finalBarangay + ", " + finalCity;
+                        if (!finalDistrict.isEmpty()) addressStr += " (" + finalDistrict + ")";
+                        tvPharmacyAddress.setText("📍 " + addressStr);
+
+                        fullAddressForMaps = name + " Pharmacy, Barangay " + finalBarangay + ", " + finalCity + ", Philippines";
+
+                        tvContactInfo.setText("Phone: " + (contactPhone.isEmpty() ? "N/A" : contactPhone));
+                        tvEmailInfo.setText("Email: " + (email != null ? email : "N/A"));
+                        tvOperatingHours.setText("Operating Hours: " + (hours != null && !hours.isEmpty() ? hours : "8:00 AM - 9:00 PM"));
+                        tvStatusInfo.setText("Status: " + (status != null ? status.toUpperCase() : "VERIFIED"));
+                    });
+                }
+
+                con.close();
+            } catch (SQLException e) {
+                Log.e("ActivityPharmacyProfile", "Error loading pharmacy: " + e.getMessage());
             }
+        });
+    }
 
-            con.close();
-        } catch (SQLException e) {
-            Log.e("ActivityPharmacyProfile", "Error loading pharmacy: " + e.getMessage());
-        }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdown();
     }
 }

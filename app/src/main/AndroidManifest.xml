@@ -29,10 +29,15 @@
             android:exported="false" />
         <activity
             android:name=".ActivityInquiryThread"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ActivityPharmacyProfile"
             android:exported="false" />
+        <activity
+            android:name=".ActivityMapPicker"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

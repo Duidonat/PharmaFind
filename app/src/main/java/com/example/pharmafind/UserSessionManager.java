@@ -15,6 +15,8 @@ public class UserSessionManager {
     private static final String KEY_BARANGAY = "barangay";
     private static final String KEY_DISTRICT = "district";
     private static final String KEY_STATUS = "status"; // for pharmacy 'pending'/'approved'
+    private static final String KEY_LATITUDE = "latitude";
+    private static final String KEY_LONGITUDE = "longitude";
 
     private final SharedPreferences pref;
     private final SharedPreferences.Editor editor;
@@ -47,6 +49,20 @@ public class UserSessionManager {
         editor.putString(KEY_DISTRICT, district);
         editor.putString(KEY_STATUS, status);
         editor.apply();
+    }
+
+    public void setLocationCoordinates(double lat, double lng) {
+        editor.putFloat(KEY_LATITUDE, (float) lat);
+        editor.putFloat(KEY_LONGITUDE, (float) lng);
+        editor.apply();
+    }
+
+    public double getLatitude() {
+        return pref.getFloat(KEY_LATITUDE, 0.0f);
+    }
+
+    public double getLongitude() {
+        return pref.getFloat(KEY_LONGITUDE, 0.0f);
     }
 
     public boolean isLoggedIn() {

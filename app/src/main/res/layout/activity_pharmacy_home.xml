@@ -3,104 +3,77 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
-    android:padding="16dp">
+    android:background="@color/background_light">
 
-    <!-- Top Header Row -->
-    <LinearLayout
-        android:id="@+id/headerPharmacy"
+    <!-- Top Header Bar -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/headerCardPharmacy"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/primary_dark"
         app:layout_constraintTop_toTopOf="parent">
 
-        <LinearLayout
-            android:layout_width="0dp"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:padding="16dp">
 
             <TextView
                 android:id="@+id/tvPharmacyWelcome"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Welcome, Pharmacy Name"
-                android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:text="Welcome Pharmacy!"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@id/btnPharmacyLogout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tvPharmacyLocation"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="📍 Barangay Marawoy, Lipa City"
+                android:textColor="#E0E0E0"
+                android:textSize="13sp"
+                app:layout_constraintEnd_toStartOf="@id/btnPharmacyLogout"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvPharmacyWelcome" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPharmacyLogout"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="📍 Barangay Marawoy, Lipa City"
-                android:textColor="@color/text_gray"
-                android:textSize="13sp" />
+                android:text="Logout"
+                android:textColor="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEditPharmacyProfile"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:text="✏️ Edit Profile"
-            android:textAllCaps="false"
-            android:textColor="@color/primary_teal"
-            android:textSize="12sp"
-            app:strokeColor="@color/primary_teal" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPharmacyLogout"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Logout"
-            android:textColor="@color/primary_teal" />
-
-    </LinearLayout>
-
-    <View
-        android:id="@+id/dividerPharmacy"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="12dp"
-        android:background="@color/divider_color"
-        app:layout_constraintTop_toBottomOf="@id/headerPharmacy" />
-
-    <!-- Title for Local Requests Feed -->
-    <TextView
-        android:id="@+id/tvLocalRequestsTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Nearby Patient Medicine Requests"
-        android:textColor="@color/black"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dividerPharmacy" />
-
-    <TextView
-        android:id="@+id/tvLocalRequestsSub"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="Showing inquiries posted in your registered area"
-        android:textColor="@color/text_gray"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvLocalRequestsTitle" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvPharmacyInquiries"
+    <!-- Fragment Container -->
+    <FrameLayout
+        android:id="@+id/pharmacyFragmentContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvLocalRequestsSub" />
+        app:layout_constraintBottom_toTopOf="@id/pharmacyBottomNavigation"
+        app:layout_constraintTop_toBottomOf="@id/headerCardPharmacy" />
+
+    <!-- Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/pharmacyBottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:elevation="8dp"
+        app:menu="@menu/pharmacy_bottom_menu"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

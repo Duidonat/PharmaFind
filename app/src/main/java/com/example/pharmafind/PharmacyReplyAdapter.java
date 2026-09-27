@@ -18,6 +18,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
         void onViewProfileClick(PharmacyReplyModel reply);
         void onContactClick(PharmacyReplyModel reply);
         void onAcceptOfferClick(PharmacyReplyModel reply);
+        void onReplyTextClick(PharmacyReplyModel reply);
     }
 
     public PharmacyReplyAdapter(List<PharmacyReplyModel> replyList, OnReplyActionListener listener) {
@@ -70,6 +71,14 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
         } else {
             holder.tvNote.setVisibility(View.GONE);
         }
+
+        View.OnClickListener textClickListener = v -> {
+            if (listener != null) listener.onReplyTextClick(reply);
+        };
+
+        holder.tvPrice.setOnClickListener(textClickListener);
+        holder.tvNote.setOnClickListener(textClickListener);
+        holder.itemView.setOnClickListener(textClickListener);
 
         holder.btnViewPharmacyProfile.setOnClickListener(v -> {
             if (listener != null) listener.onViewProfileClick(reply);

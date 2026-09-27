@@ -5,6 +5,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Base64;
@@ -38,6 +40,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FragmentCustomerFeed extends Fragment {
 
@@ -56,6 +60,9 @@ public class FragmentCustomerFeed extends Fragment {
     private ImageView ivAttachedPhotoDialog;
     private FrameLayout photoPreviewContainerDialog;
     private String selectedBase64Image = "";
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -160,12 +167,12 @@ public class FragmentCustomerFeed extends Fragment {
         }
     }
 
-    private void ensureTablesExist() {
-        Connection con = sqlHelper.conclass();
+    private void ensureTablesExistInternal(Connection con) {
         if (con == null) return;
-
         try {
             Statement stmt = con.createStatement();
+
+            // 1. Create Inquiries table if it doesn't exist at all
             String createInquiriesTable = "IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Inquiries]') AND type in (N'U')) " +
                     "BEGIN " +
                     "CREATE TABLE dbo.Inquiries ( " +
@@ -184,6 +191,26 @@ public class FragmentCustomerFeed extends Fragment {
                     "END";
             stmt.executeUpdate(createInquiriesTable);
 
+            // 2. Add each missing column individually so syntax is valid and independent
+            String[] alterCols = {
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'CustomerName') ALTER TABLE dbo.Inquiries ADD CustomerName NVARCHAR(100) NULL;",
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'City') ALTER TABLE dbo.Inquiries ADD City NVARCHAR(100) NULL;",
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Barangay') ALTER TABLE dbo.Inquiries ADD Barangay NVARCHAR(100) NULL;",
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'District') ALTER TABLE dbo.Inquiries ADD District NVARCHAR(100) NULL;",
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'ImageUrl') ALTER TABLE dbo.Inquiries ADD ImageUrl NVARCHAR(MAX) NULL;",
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Description') ALTER TABLE dbo.Inquiries ADD Description NVARCHAR(MAX) NULL;",
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Status') ALTER TABLE dbo.Inquiries ADD Status NVARCHAR(50) DEFAULT 'open';"
+            };
+
+            for (String sql : alterCols) {
+                try {
+                    stmt.executeUpdate(sql);
+                } catch (SQLException e) {
+                    Log.e("FragmentCustomerFeed", "Col alter warning: " + e.getMessage());
+                }
+            }
+
+            // 3. Create PharmacyReplies table if it doesn't exist
             String createRepliesTable = "IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[PharmacyReplies]') AND type in (N'U')) " +
                     "BEGIN " +
                     "CREATE TABLE dbo.PharmacyReplies ( " +
@@ -199,52 +226,70 @@ public class FragmentCustomerFeed extends Fragment {
                     "END";
             stmt.executeUpdate(createRepliesTable);
 
-            con.close();
         } catch (SQLException e) {
             Log.e("FragmentCustomerFeed", "Table Creation Error: " + e.getMessage());
         }
     }
 
+    private void ensureTablesExist() {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
+            ensureTablesExistInternal(con);
+            try {
+                con.close();
+            } catch (SQLException ignored) {}
+        });
+    }
+
     private void loadInquiriesFromDB() {
-        Connection con = sqlHelper.conclass();
-        if (con == null) return;
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
 
-        try {
-            allInquiriesList.clear();
-            String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
-                    "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
-                    "FROM dbo.Inquiries i " +
-                    "ORDER BY i.CreatedAt DESC";
+            ensureTablesExistInternal(con);
 
-            PreparedStatement stmt = con.prepareStatement(query);
-            ResultSet rs = stmt.executeQuery();
+            try {
+                List<InquiryModel> tempInquiries = new ArrayList<>();
+                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                        "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
+                        "FROM dbo.Inquiries i " +
+                        "ORDER BY i.CreatedAt DESC";
 
-            while (rs.next()) {
-                int inquiryId = rs.getInt("InquiryID");
-                int customerId = rs.getInt("CustomerID");
-                String customerName = rs.getString("CustomerName");
-                String medicineName = rs.getString("MedicineName");
-                String description = rs.getString("Description");
-                String imageUrl = rs.getString("ImageUrl");
-                String city = rs.getString("City");
-                String barangay = rs.getString("Barangay");
-                String district = rs.getString("District");
-                String status = rs.getString("Status");
-                String createdAt = rs.getString("CreatedAtStr");
-                int replyCount = rs.getInt("ReplyCount");
+                PreparedStatement stmt = con.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery();
 
-                allInquiriesList.add(new InquiryModel(
-                        inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
-                ));
+                while (rs.next()) {
+                    int inquiryId = rs.getInt("InquiryID");
+                    int customerId = rs.getInt("CustomerID");
+                    String customerName = rs.getString("CustomerName");
+                    String medicineName = rs.getString("MedicineName");
+                    String description = rs.getString("Description");
+                    String imageUrl = rs.getString("ImageUrl");
+                    String city = rs.getString("City");
+                    String barangay = rs.getString("Barangay");
+                    String district = rs.getString("District");
+                    String status = rs.getString("Status");
+                    String createdAt = rs.getString("CreatedAtStr");
+                    int replyCount = rs.getInt("ReplyCount");
+
+                    tempInquiries.add(new InquiryModel(
+                            inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
+                    ));
+                }
+
+                con.close();
+
+                mainHandler.post(() -> {
+                    allInquiriesList.clear();
+                    allInquiriesList.addAll(tempInquiries);
+                    filterInquiries();
+                });
+
+            } catch (SQLException e) {
+                Log.e("FragmentCustomerFeed", "Load Inquiries Error: " + e.getMessage());
             }
-
-            con.close();
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(this::filterInquiries);
-            }
-        } catch (SQLException e) {
-            Log.e("FragmentCustomerFeed", "Load Inquiries Error: " + e.getMessage());
-        }
+        });
     }
 
     private void showCreateInquiryDialog() {
@@ -296,7 +341,8 @@ public class FragmentCustomerFeed extends Fragment {
                     return;
                 }
 
-                postInquiryToDB(medicineName, description, selectedBase64Image, dialog);
+                btnPostInquiry.setEnabled(false);
+                postInquiryToDB(medicineName, description, selectedBase64Image, dialog, btnPostInquiry);
             });
         }
 
@@ -334,38 +380,59 @@ public class FragmentCustomerFeed extends Fragment {
         }
     }
 
-    private void postInquiryToDB(String medicineName, String description, String base64Image, BottomSheetDialog dialog) {
-        Connection con = sqlHelper.conclass();
-        if (con == null) {
-            Toast.makeText(getContext(), "Database Connection Failed", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            String query = "INSERT INTO dbo.Inquiries (CustomerID, CustomerName, MedicineName, Description, ImageUrl, City, Barangay, District, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open')";
-            PreparedStatement stmt = con.prepareStatement(query);
-            stmt.setInt(1, sessionManager.getUserId());
-            stmt.setString(2, sessionManager.getFullName());
-            stmt.setString(3, medicineName);
-            stmt.setString(4, description);
-            stmt.setString(5, base64Image);
-            stmt.setString(6, sessionManager.getCity());
-            stmt.setString(7, sessionManager.getBarangay());
-            stmt.setString(8, sessionManager.getDistrict());
-
-            int rows = stmt.executeUpdate();
-            if (rows > 0) {
-                Toast.makeText(getContext(), "Medicine Request Posted!", Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-                loadInquiriesFromDB();
-            } else {
-                Toast.makeText(getContext(), "Failed to post request", Toast.LENGTH_SHORT).show();
+    private void postInquiryToDB(String medicineName, String description, String base64Image, BottomSheetDialog dialog, MaterialButton btnPost) {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) {
+                mainHandler.post(() -> {
+                    if (btnPost != null) btnPost.setEnabled(true);
+                    Toast.makeText(getContext(), "Database Connection Failed", Toast.LENGTH_SHORT).show();
+                });
+                return;
             }
 
-            con.close();
-        } catch (SQLException e) {
-            Log.e("FragmentCustomerFeed", "Post Inquiry Error: " + e.getMessage());
-            Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+            // Ensure columns exist right before executing the insert statement
+            ensureTablesExistInternal(con);
+
+            try {
+                String query = "INSERT INTO dbo.Inquiries (CustomerID, CustomerName, MedicineName, Description, ImageUrl, City, Barangay, District, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open')";
+                PreparedStatement stmt = con.prepareStatement(query);
+                stmt.setInt(1, sessionManager.getUserId());
+                stmt.setString(2, sessionManager.getFullName());
+                stmt.setString(3, medicineName);
+                stmt.setString(4, description);
+                stmt.setString(5, base64Image);
+                stmt.setString(6, sessionManager.getCity());
+                stmt.setString(7, sessionManager.getBarangay());
+                stmt.setString(8, sessionManager.getDistrict());
+
+                int rows = stmt.executeUpdate();
+                con.close();
+
+                mainHandler.post(() -> {
+                    if (btnPost != null) btnPost.setEnabled(true);
+                    if (rows > 0) {
+                        Toast.makeText(getContext(), "Medicine Request Posted!", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        loadInquiriesFromDB();
+                    } else {
+                        Toast.makeText(getContext(), "Failed to post request", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            } catch (SQLException e) {
+                Log.e("FragmentCustomerFeed", "Post Inquiry Error: " + e.getMessage());
+                mainHandler.post(() -> {
+                    if (btnPost != null) btnPost.setEnabled(true);
+                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        executor.shutdown();
     }
 }

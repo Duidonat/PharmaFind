@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Header Bar -->
+    <RelativeLayout
+        android:id="@+id/headerMapPicker"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="@color/primary_dark"
+        android:paddingHorizontal="12dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnBackMapPicker"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerVertical="true"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_revert"
+            app:tint="@color/white" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/btnBackMapPicker"
+            android:layout_toStartOf="@id/btnToggleMapSource"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Choose Location on Map"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap or drag pin to choose exact position"
+                android:textColor="#D0D0D0"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnToggleMapSource"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:text="🗺️ Tile Map"
+            android:textColor="@color/white"
+            android:textSize="11sp" />
+
+    </RelativeLayout>
+
+    <!-- Map View -->
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/mapFragmentPicker"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/headerMapPicker"
+        app:layout_constraintBottom_toTopOf="@id/bottomCardMapPicker" />
+
+    <!-- OpenStreetMap Fallback Tile Map View (Loads tiles without needing Google API Key) -->
+    <WebView
+        android:id="@+id/webViewMapPicker"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/headerMapPicker"
+        app:layout_constraintBottom_toTopOf="@id/bottomCardMapPicker" />
+
+    <ProgressBar
+        android:id="@+id/pbMapLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@color/primary_teal"
+        app:layout_constraintTop_toTopOf="@id/mapFragmentPicker"
+        app:layout_constraintBottom_toBottomOf="@id/mapFragmentPicker"
+        app:layout_constraintStart_toStartOf="@id/mapFragmentPicker"
+        app:layout_constraintEnd_toEndOf="@id/mapFragmentPicker" />
+
+    <!-- Bottom Controls Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottomCardMapPicker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_margin="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvSelectedCoords"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap on map to select location pin"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- Manual Lat/Lng Fields -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/etMapLat"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:background="@drawable/edittext_background"
+                    android:hint="Latitude"
+                    android:inputType="numberDecimal|numberSigned"
+                    android:paddingHorizontal="8dp"
+                    android:textColor="@color/black"
+                    android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/etMapLng"
+                    android:layout_width="0dp"
+                    android:layout_height="42dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/edittext_background"
+                    android:hint="Longitude"
+                    android:inputType="numberDecimal|numberSigned"
+                    android:paddingHorizontal="8dp"
+                    android:textColor="@color/black"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnMyGpsLocation"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="🎯 My GPS"
+                    android:textAllCaps="false"
+                    android:textColor="@color/primary_teal"
+                    app:strokeColor="@color/primary_teal" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConfirmMapLocation"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1.5"
+                    android:layout_marginStart="6dp"
+                    android:text="Confirm Location Pin"
+                    android:textAllCaps="false"
+                    app:backgroundTint="@color/primary_teal"
+                    app:cornerRadius="24dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

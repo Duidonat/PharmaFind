@@ -3,6 +3,8 @@ package com.example.pharmafind;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -21,11 +23,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
     private conSQL sqlHelper;
     private UserSessionManager sessionManager;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,19 +86,33 @@ public class MainActivity extends AppCompatActivity {
 
         EditText etUsername = dialogView.findViewById(R.id.etUsername);
         EditText etPassword = dialogView.findViewById(R.id.etPassword);
+        android.widget.CheckBox cbShowPassword = dialogView.findViewById(R.id.cbShowPassword);
         MaterialButton btnLoginSubmit = dialogView.findViewById(R.id.btnLoginSubmit);
+
+        if (cbShowPassword != null && etPassword != null) {
+            cbShowPassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    etPassword.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                } else {
+                    etPassword.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                }
+                etPassword.setSelection(etPassword.getText().length());
+            });
+        }
 
         if (btnLoginSubmit != null) {
             btnLoginSubmit.setOnClickListener(v -> {
-                String username = etUsername.getText().toString().trim();
-                String password = etPassword.getText().toString().trim();
+                String username = etUsername != null ? etUsername.getText().toString().trim() : "";
+                String password = etPassword != null ? etPassword.getText().toString().trim() : "";
 
                 if (username.isEmpty() || password.isEmpty()) {
                     Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                performLogin(username, password, bottomSheetDialog);
+                btnLoginSubmit.setEnabled(false);
+                Toast.makeText(this, "Logging in...", Toast.LENGTH_SHORT).show();
+                performLogin(username, password, bottomSheetDialog, btnLoginSubmit);
             });
         }
 
@@ -104,81 +124,97 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
-    private void performLogin(String username, String password, BottomSheetDialog dialog) {
-        Connection con = sqlHelper.conclass();
-        if (con == null) {
-            Toast.makeText(this, "Failed to connect to database. Check credentials in conSQL.java", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            // Check Customers table
-            String customerQuery = "SELECT CustomerID, FirstName, Surname, City, Barangay, District FROM dbo.Customers WHERE Username = ? AND Password = ?";
-            PreparedStatement customerStmt = con.prepareStatement(customerQuery);
-            customerStmt.setString(1, username);
-            customerStmt.setString(2, password);
-            ResultSet customerRs = customerStmt.executeQuery();
-
-            if (customerRs.next()) {
-                int id = customerRs.getInt("CustomerID");
-                String name = customerRs.getString("FirstName") + " " + customerRs.getString("Surname");
-                String city = customerRs.getString("City");
-                String barangay = customerRs.getString("Barangay");
-                String district = customerRs.getString("District");
-                if (city == null) city = "";
-                if (barangay == null) barangay = "";
-                if (district == null) district = "";
-
-                sessionManager.createCustomerSession(id, username, name, city, barangay, district);
-
-                Toast.makeText(this, "Welcome Customer: " + name, Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
-                con.close();
-
-                Intent intent = new Intent(MainActivity.this, CustomerHomeActivity.class);
-                startActivity(intent);
-                finish();
+    private void performLogin(String username, String password, BottomSheetDialog dialog, MaterialButton btnSubmit) {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) {
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Failed to connect to database. Please check connection.", Toast.LENGTH_SHORT).show();
+                });
                 return;
             }
 
-            // Check Pharmacies table
-            String pharmacyQuery = "SELECT PharmacyID, PharmacyName, City, Barangay, District, Status FROM dbo.Pharmacies WHERE Username = ? AND Password = ?";
-            PreparedStatement pharmacyStmt = con.prepareStatement(pharmacyQuery);
-            pharmacyStmt.setString(1, username);
-            pharmacyStmt.setString(2, password);
-            ResultSet pharmacyRs = pharmacyStmt.executeQuery();
+            try {
+                // Check Customers table
+                String customerQuery = "SELECT CustomerID, FirstName, Surname, City, Barangay, District FROM dbo.Customers WHERE Username = ? AND Password = ?";
+                PreparedStatement customerStmt = con.prepareStatement(customerQuery);
+                customerStmt.setString(1, username);
+                customerStmt.setString(2, password);
+                ResultSet customerRs = customerStmt.executeQuery();
 
-            if (pharmacyRs.next()) {
-                int id = pharmacyRs.getInt("PharmacyID");
-                String name = pharmacyRs.getString("PharmacyName");
-                String city = pharmacyRs.getString("City");
-                String barangay = pharmacyRs.getString("Barangay");
-                String district = pharmacyRs.getString("District");
-                String status = pharmacyRs.getString("Status");
-                if (city == null) city = "";
-                if (barangay == null) barangay = "";
-                if (district == null) district = "";
-                if (status == null) status = "pending";
+                if (customerRs.next()) {
+                    int id = customerRs.getInt("CustomerID");
+                    String name = customerRs.getString("FirstName") + " " + customerRs.getString("Surname");
+                    String city = customerRs.getString("City");
+                    String barangay = customerRs.getString("Barangay");
+                    String district = customerRs.getString("District");
+                    if (city == null) city = "";
+                    if (barangay == null) barangay = "";
+                    if (district == null) district = "";
 
-                sessionManager.createPharmacySession(id, username, name, city, barangay, district, status);
+                    sessionManager.createCustomerSession(id, username, name, city, barangay, district);
 
-                Toast.makeText(this, "Welcome Pharmacy: " + name, Toast.LENGTH_SHORT).show();
-                dialog.dismiss();
+                    con.close();
+
+                    mainHandler.post(() -> {
+                        Toast.makeText(MainActivity.this, "Welcome Customer: " + name, Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        Intent intent = new Intent(MainActivity.this, CustomerHomeActivity.class);
+                        startActivity(intent);
+                        finish();
+                    });
+                    return;
+                }
+
+                // Check Pharmacies table
+                String pharmacyQuery = "SELECT PharmacyID, PharmacyName, City, Barangay, District, Status FROM dbo.Pharmacies WHERE Username = ? AND Password = ?";
+                PreparedStatement pharmacyStmt = con.prepareStatement(pharmacyQuery);
+                pharmacyStmt.setString(1, username);
+                pharmacyStmt.setString(2, password);
+                ResultSet pharmacyRs = pharmacyStmt.executeQuery();
+
+                if (pharmacyRs.next()) {
+                    int id = pharmacyRs.getInt("PharmacyID");
+                    String name = pharmacyRs.getString("PharmacyName");
+                    String city = pharmacyRs.getString("City");
+                    String barangay = pharmacyRs.getString("Barangay");
+                    String district = pharmacyRs.getString("District");
+                    String status = pharmacyRs.getString("Status");
+                    if (city == null) city = "";
+                    if (barangay == null) barangay = "";
+                    if (district == null) district = "";
+                    if (status == null) status = "pending";
+
+                    sessionManager.createPharmacySession(id, username, name, city, barangay, district, status);
+
+                    con.close();
+
+                    mainHandler.post(() -> {
+                        Toast.makeText(MainActivity.this, "Welcome Pharmacy: " + name, Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        Intent intent = new Intent(MainActivity.this, PharmacyHomeActivity.class);
+                        startActivity(intent);
+                        finish();
+                    });
+                    return;
+                }
+
                 con.close();
 
-                Intent intent = new Intent(MainActivity.this, PharmacyHomeActivity.class);
-                startActivity(intent);
-                finish();
-                return;
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Invalid Username or Password", Toast.LENGTH_SHORT).show();
+                });
+
+            } catch (SQLException e) {
+                Log.e("MainActivity", "Login Error: " + e.getMessage());
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
             }
-
-            Toast.makeText(this, "Invalid Username or Password", Toast.LENGTH_SHORT).show();
-            con.close();
-
-        } catch (SQLException e) {
-            Log.e("MainActivity", "Login Error: " + e.getMessage());
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+        });
     }
 
     private void showRegisterSelectionDialog() {
@@ -251,7 +287,9 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            registerPharmacy(pharmacyName, city, barangay, district, email, contact, username, password, bottomSheetDialog);
+            btnSubmit.setEnabled(false);
+            Toast.makeText(this, "Registering Pharmacy...", Toast.LENGTH_SHORT).show();
+            registerPharmacy(pharmacyName, city, barangay, district, email, contact, username, password, bottomSheetDialog, btnSubmit);
         });
 
         View parent = (View) dialogView.getParent();
@@ -262,37 +300,49 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
-    private void registerPharmacy(String name, String city, String barangay, String district, String email, String contact, String username, String password, BottomSheetDialog dialog) {
-        Connection con = sqlHelper.conclass();
-        if (con == null) {
-            Toast.makeText(this, "Database Connection Failed. Check credentials in conSQL.java", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            String query = "INSERT INTO dbo.Pharmacies (PharmacyName, City, Barangay, District, Email, Contact, Username, Password, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
-            PreparedStatement stmt = con.prepareStatement(query);
-            stmt.setString(1, name);
-            stmt.setString(2, city);
-            stmt.setString(3, barangay);
-            stmt.setString(4, district);
-            stmt.setString(5, email);
-            stmt.setString(6, contact);
-            stmt.setString(7, username);
-            stmt.setString(8, password);
-
-            int rows = stmt.executeUpdate();
-            if (rows > 0) {
-                Toast.makeText(this, "Pharmacy Registration Successful! Pending admin verification.", Toast.LENGTH_LONG).show();
-                dialog.dismiss();
-            } else {
-                Toast.makeText(this, "Registration failed.", Toast.LENGTH_SHORT).show();
+    private void registerPharmacy(String name, String city, String barangay, String district, String email, String contact, String username, String password, BottomSheetDialog dialog, MaterialButton btnSubmit) {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) {
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Database Connection Failed.", Toast.LENGTH_SHORT).show();
+                });
+                return;
             }
-            con.close();
-        } catch (SQLException e) {
-            Log.e("MainActivity", "Register Pharmacy Error: " + e.getMessage());
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+
+            try {
+                String query = "INSERT INTO dbo.Pharmacies (PharmacyName, City, Barangay, District, Email, Contact, Username, Password, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
+                PreparedStatement stmt = con.prepareStatement(query);
+                stmt.setString(1, name);
+                stmt.setString(2, city);
+                stmt.setString(3, barangay);
+                stmt.setString(4, district);
+                stmt.setString(5, email);
+                stmt.setString(6, contact);
+                stmt.setString(7, username);
+                stmt.setString(8, password);
+
+                int rows = stmt.executeUpdate();
+                con.close();
+
+                mainHandler.post(() -> {
+                    if (rows > 0) {
+                        Toast.makeText(MainActivity.this, "Pharmacy Registration Successful! Pending admin verification.", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                    } else {
+                        if (btnSubmit != null) btnSubmit.setEnabled(true);
+                        Toast.makeText(MainActivity.this, "Registration failed.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (SQLException e) {
+                Log.e("MainActivity", "Register Pharmacy Error: " + e.getMessage());
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     private void showRegisterCustomerDialog() {
@@ -357,7 +407,9 @@ public class MainActivity extends AppCompatActivity {
 
             int age = ageStr.isEmpty() ? 0 : Integer.parseInt(ageStr);
 
-            registerCustomer(firstName, surname, middleInitial, city, barangay, district, age, birthDate, email, contact, username, password, bottomSheetDialog);
+            btnSubmit.setEnabled(false);
+            Toast.makeText(this, "Registering Customer...", Toast.LENGTH_SHORT).show();
+            registerCustomer(firstName, surname, middleInitial, city, barangay, district, age, birthDate, email, contact, username, password, bottomSheetDialog, btnSubmit);
         });
 
         View parent = (View) dialogView.getParent();
@@ -368,40 +420,58 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
-    private void registerCustomer(String firstName, String surname, String mi, String city, String barangay, String district, int age, String birthDate, String email, String contact, String username, String password, BottomSheetDialog dialog) {
-        Connection con = sqlHelper.conclass();
-        if (con == null) {
-            Toast.makeText(this, "Database Connection Failed. Check credentials in conSQL.java", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        try {
-            String query = "INSERT INTO dbo.Customers (FirstName, Surname, MiddleInitial, City, Barangay, District, Age, BirthDate, Email, Contact, Username, Password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement stmt = con.prepareStatement(query);
-            stmt.setString(1, firstName);
-            stmt.setString(2, surname);
-            stmt.setString(3, mi);
-            stmt.setString(4, city);
-            stmt.setString(5, barangay);
-            stmt.setString(6, district);
-            stmt.setInt(7, age);
-            stmt.setString(8, birthDate);
-            stmt.setString(9, email);
-            stmt.setString(10, contact);
-            stmt.setString(11, username);
-            stmt.setString(12, password);
-
-            int rows = stmt.executeUpdate();
-            if (rows > 0) {
-                Toast.makeText(this, "Customer Registration Successful!", Toast.LENGTH_LONG).show();
-                dialog.dismiss();
-            } else {
-                Toast.makeText(this, "Registration failed.", Toast.LENGTH_SHORT).show();
+    private void registerCustomer(String firstName, String surname, String mi, String city, String barangay, String district, int age, String birthDate, String email, String contact, String username, String password, BottomSheetDialog dialog, MaterialButton btnSubmit) {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) {
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Database Connection Failed.", Toast.LENGTH_SHORT).show();
+                });
+                return;
             }
-            con.close();
-        } catch (SQLException e) {
-            Log.e("MainActivity", "Register Customer Error: " + e.getMessage());
-            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
+
+            try {
+                String query = "INSERT INTO dbo.Customers (FirstName, Surname, MiddleInitial, City, Barangay, District, Age, BirthDate, Email, Contact, Username, Password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                PreparedStatement stmt = con.prepareStatement(query);
+                stmt.setString(1, firstName);
+                stmt.setString(2, surname);
+                stmt.setString(3, mi);
+                stmt.setString(4, city);
+                stmt.setString(5, barangay);
+                stmt.setString(6, district);
+                stmt.setInt(7, age);
+                stmt.setString(8, birthDate);
+                stmt.setString(9, email);
+                stmt.setString(10, contact);
+                stmt.setString(11, username);
+                stmt.setString(12, password);
+
+                int rows = stmt.executeUpdate();
+                con.close();
+
+                mainHandler.post(() -> {
+                    if (rows > 0) {
+                        Toast.makeText(MainActivity.this, "Customer Registration Successful!", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                    } else {
+                        if (btnSubmit != null) btnSubmit.setEnabled(true);
+                        Toast.makeText(MainActivity.this, "Registration failed.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (SQLException e) {
+                Log.e("MainActivity", "Register Customer Error: " + e.getMessage());
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdown();
     }
 }

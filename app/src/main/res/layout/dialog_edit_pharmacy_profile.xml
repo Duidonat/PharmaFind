@@ -85,14 +85,107 @@
                 android:textColor="@color/black"
                 android:textSize="14sp" />
 
-            <!-- Operating Hours -->
+            <!-- Operating Hours & Schedule Picker -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Operating Hours"
+                android:text="Operating Hours &amp; Schedule"
                 android:textColor="@color/black"
                 android:textSize="13sp"
                 android:textStyle="bold" />
+
+            <!-- Time Pickers Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnOpeningTime"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:text="Opening: 8:00 AM"
+                    android:textAllCaps="false"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:strokeColor="@color/text_gray" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnClosingTime"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:text="Closing: 9:00 PM"
+                    android:textAllCaps="false"
+                    android:textColor="@color/black"
+                    android:textSize="12sp"
+                    app:strokeColor="@color/text_gray" />
+
+            </LinearLayout>
+
+            <!-- Day / Schedule Selection Chips -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupDays"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMonSun"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Mon - Sun"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMonSat"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mon - Sat"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipMonFri"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mon - Fri"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip247"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="24 / 7"
+                        android:textSize="11sp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipCustomDates"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="📅 Select Date Range"
+                        android:textSize="11sp" />
+
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
 
             <EditText
                 android:id="@+id/etHoursEdit"
@@ -101,7 +194,7 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="12dp"
                 android:background="@drawable/edittext_background"
-                android:hint="e.g. 8:00 AM - 9:00 PM (Mon-Sun)"
+                android:hint="Operating Hours Schedule"
                 android:inputType="text"
                 android:paddingHorizontal="12dp"
                 android:textColor="@color/black"
@@ -194,6 +287,17 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="8dp"
                 android:text="🎯 Auto-Detect My Current GPS Location Pin"
+                android:textAllCaps="false"
+                android:textColor="@color/primary_teal"
+                app:strokeColor="@color/primary_teal" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPickPharmacyMap"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:text="🗺️ Pick Store Location Manually on Map"
                 android:textAllCaps="false"
                 android:textColor="@color/primary_teal"
                 app:strokeColor="@color/primary_teal" />

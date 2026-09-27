@@ -2,11 +2,12 @@ package com.example.pharmafind;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -18,6 +19,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class FragmentCustomerTabHistory extends Fragment {
 
@@ -25,6 +28,9 @@ public class FragmentCustomerTabHistory extends Fragment {
     private UserSessionManager sessionManager;
     private InquiryAdapter inquiryAdapter;
     private List<InquiryModel> myInquiryList;
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,46 +60,60 @@ public class FragmentCustomerTabHistory extends Fragment {
     }
 
     private void loadMyInquiriesFromDB() {
-        Connection con = sqlHelper.conclass();
-        if (con == null) return;
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
 
-        try {
-            myInquiryList.clear();
-            String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
-                    "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
-                    "FROM dbo.Inquiries i " +
-                    "WHERE i.CustomerID = ? " +
-                    "ORDER BY i.CreatedAt DESC";
+            try {
+                List<InquiryModel> tempInquiries = new ArrayList<>();
+                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                        "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
+                        "FROM dbo.Inquiries i " +
+                        "WHERE i.CustomerID = ? " +
+                        "ORDER BY i.CreatedAt DESC";
 
-            PreparedStatement stmt = con.prepareStatement(query);
-            stmt.setInt(1, sessionManager.getUserId());
-            ResultSet rs = stmt.executeQuery();
+                PreparedStatement stmt = con.prepareStatement(query);
+                stmt.setInt(1, sessionManager.getUserId());
+                ResultSet rs = stmt.executeQuery();
 
-            while (rs.next()) {
-                int inquiryId = rs.getInt("InquiryID");
-                int customerId = rs.getInt("CustomerID");
-                String customerName = rs.getString("CustomerName");
-                String medicineName = rs.getString("MedicineName");
-                String description = rs.getString("Description");
-                String imageUrl = rs.getString("ImageUrl");
-                String city = rs.getString("City");
-                String barangay = rs.getString("Barangay");
-                String district = rs.getString("District");
-                String status = rs.getString("Status");
-                String createdAt = rs.getString("CreatedAtStr");
-                int replyCount = rs.getInt("ReplyCount");
+                while (rs.next()) {
+                    int inquiryId = rs.getInt("InquiryID");
+                    int customerId = rs.getInt("CustomerID");
+                    String customerName = rs.getString("CustomerName");
+                    String medicineName = rs.getString("MedicineName");
+                    String description = rs.getString("Description");
+                    String imageUrl = rs.getString("ImageUrl");
+                    String city = rs.getString("City");
+                    String barangay = rs.getString("Barangay");
+                    String district = rs.getString("District");
+                    String status = rs.getString("Status");
+                    String createdAt = rs.getString("CreatedAtStr");
+                    int replyCount = rs.getInt("ReplyCount");
 
-                myInquiryList.add(new InquiryModel(
-                        inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
-                ));
+                    tempInquiries.add(new InquiryModel(
+                            inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
+                    ));
+                }
+
+                con.close();
+
+                mainHandler.post(() -> {
+                    myInquiryList.clear();
+                    myInquiryList.addAll(tempInquiries);
+                    if (inquiryAdapter != null) {
+                        inquiryAdapter.notifyDataSetChanged();
+                    }
+                });
+
+            } catch (SQLException e) {
+                Log.e("CustomerTabHistory", "Load My Inquiries Error: " + e.getMessage());
             }
+        });
+    }
 
-            con.close();
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> inquiryAdapter.notifyDataSetChanged());
-            }
-        } catch (SQLException e) {
-            Log.e("CustomerTabHistory", "Load My Inquiries Error: " + e.getMessage());
-        }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        executor.shutdown();
     }
 }

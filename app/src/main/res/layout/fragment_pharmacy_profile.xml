@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background_light">
+
+    <!-- Profile Header Card (FB Style) -->
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="@color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Store Avatar Icon -->
+            <ImageView
+                android:id="@+id/ivPharmacyProfilePicture"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="@color/primary_teal"
+                android:padding="20dp"
+                android:src="@drawable/ic_pill_placeholder"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/tvPharmacyProfileName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Pharmacy Store Name"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvPharmacyProfileLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="📍 Barangay Marawoy, Lipa City"
+                android:textColor="@color/text_gray"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 2 Tabs (TabLayout) -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/pharmacyProfileTabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        app:tabIndicatorColor="@color/primary_teal"
+        app:tabSelectedTextColor="@color/primary_teal"
+        app:tabTextColor="@color/text_gray" />
+
+    <!-- ViewPager2 for Tab Contents -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/pharmacyProfileViewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>
