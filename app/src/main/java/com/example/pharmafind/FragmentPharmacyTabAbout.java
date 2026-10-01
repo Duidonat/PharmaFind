@@ -276,8 +276,15 @@ public class FragmentPharmacyTabAbout extends Fragment {
                 String latStr = dialogEtLat.getText().toString().trim();
                 String lngStr = dialogEtLng.getText().toString().trim();
 
-                double lat = latStr.isEmpty() ? 0.0 : Double.parseDouble(latStr);
-                double lng = lngStr.isEmpty() ? 0.0 : Double.parseDouble(lngStr);
+                double lat;
+                double lng;
+                try {
+                    lat = latStr.isEmpty() ? 0.0 : Double.parseDouble(latStr);
+                    lng = lngStr.isEmpty() ? 0.0 : Double.parseDouble(lngStr);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(getContext(), "Please enter a valid latitude and longitude, or leave both blank", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
                 btnSave.setEnabled(false);
                 savePharmacyProfileToDB(name, bio, hours, contact, lat, lng, dialog, btnSave);

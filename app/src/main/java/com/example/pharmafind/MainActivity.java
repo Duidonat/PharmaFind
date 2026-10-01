@@ -405,7 +405,13 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            int age = ageStr.isEmpty() ? 0 : Integer.parseInt(ageStr);
+            int age;
+            try {
+                age = ageStr.isEmpty() ? 0 : Integer.parseInt(ageStr);
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Please enter a valid age", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             btnSubmit.setEnabled(false);
             Toast.makeText(this, "Registering Customer...", Toast.LENGTH_SHORT).show();
