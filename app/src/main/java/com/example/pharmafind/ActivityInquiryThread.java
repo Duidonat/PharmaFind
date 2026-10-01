@@ -93,6 +93,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
         });
 
         ensurePharmacyRepliesColumnsExist();
+        ensureInquiriesColumnsExist();
 
         inquiryId = getIntent().getIntExtra("inquiry_id", -1);
         if (inquiryId == -1) {
@@ -302,9 +303,10 @@ public class ActivityInquiryThread extends AppCompatActivity {
             if (con == null) return;
 
             try {
-                String query = "UPDATE dbo.Inquiries SET Status = 'fulfilled' WHERE InquiryID = ?";
+                String query = "UPDATE dbo.Inquiries SET Status = 'fulfilled', AcceptedPharmacyID = ? WHERE InquiryID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
-                stmt.setInt(1, inquiryId);
+                stmt.setInt(1, reply.getPharmacyId());
+                stmt.setInt(2, inquiryId);
                 int rows = stmt.executeUpdate();
                 con.close();
 
@@ -321,6 +323,26 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
             } catch (SQLException e) {
                 Log.e("ActivityInquiryThread", "Error fulfilling inquiry: " + e.getMessage());
+            }
+        });
+    }
+
+    private void ensureInquiriesColumnsExist() {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
+
+            try {
+                Statement stmt = con.createStatement();
+                String alterColQuery = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'AcceptedPharmacyID') " +
+                        "BEGIN " +
+                        "ALTER TABLE dbo.Inquiries ADD AcceptedPharmacyID INT NULL " +
+                        "END";
+                stmt.executeUpdate(alterColQuery);
+
+                con.close();
+            } catch (SQLException e) {
+                Log.e("ActivityInquiryThread", "Error checking Inquiries table columns: " + e.getMessage());
             }
         });
     }
