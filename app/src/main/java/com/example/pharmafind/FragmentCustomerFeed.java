@@ -302,6 +302,8 @@ public class FragmentCustomerFeed extends Fragment {
                         "   OR LOWER(i.City) LIKE '%' + LOWER(?) + '%' " +
                         "   OR LOWER(?) LIKE '%' + LOWER(i.Barangay) + '%' " +
                         "   OR i.Barangay IS NULL OR i.Barangay = '' OR ? = '' " +
+                        // Match the city both ways too, so "Lipa City" and "Lipa" find each other
+                        "   OR LOWER(?) LIKE '%' + LOWER(i.City) + '%' " +
                         "ORDER BY i.CreatedAt DESC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
@@ -311,6 +313,7 @@ public class FragmentCustomerFeed extends Fragment {
                 stmt.setString(2, ct);
                 stmt.setString(3, bg);
                 stmt.setString(4, bg);
+                stmt.setString(5, ct);
 
                 ResultSet rs = stmt.executeQuery();
 
