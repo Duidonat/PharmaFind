@@ -10,10 +10,6 @@
     <string name="logo_description">PharmaFind Logo</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
-    <string name="remember_me">Remember me</string>
-    <string name="forgot_password">Forgot password?</string>
-    <string name="or">or</string>
-    <string name="sign_in_with_google">Sign in with google</string>
     <string name="register_as">Register as</string>
     <string name="customer">Customer</string>
     <string name="pharmacy">Pharmacy</string>
