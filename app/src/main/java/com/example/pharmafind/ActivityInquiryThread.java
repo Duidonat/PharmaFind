@@ -192,12 +192,13 @@ public class ActivityInquiryThread extends AppCompatActivity {
             if (con == null) return;
 
             try {
-                String query = "SELECT CustomerName, MedicineName, Description, ImageUrl, City, Barangay, District, Status, CONVERT(VARCHAR, CreatedAt, 120) AS CreatedAtStr FROM dbo.Inquiries WHERE InquiryID = ?";
+                String query = "SELECT CustomerID, CustomerName, MedicineName, Description, ImageUrl, City, Barangay, District, Status, CONVERT(VARCHAR, CreatedAt, 120) AS CreatedAtStr FROM dbo.Inquiries WHERE InquiryID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, inquiryId);
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs.next()) {
+                    int customerId = rs.getInt("CustomerID");
                     String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
                     String description = rs.getString("Description");
@@ -224,6 +225,11 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         tvMedicineName.setText("Need: " + (medicineName != null ? medicineName : ""));
                         tvDescription.setText(description != null ? description : "");
                         tvStatusBadge.setText(status != null ? status.toUpperCase() : "OPEN");
+
+                        // Only the customer who posted this inquiry may select a pharmacy's offer.
+                        boolean isOwner = "customer".equalsIgnoreCase(sessionManager.getRole())
+                                && sessionManager.getUserId() == customerId;
+                        replyAdapter.setCanSelectPharmacy(isOwner);
 
                         if (finalBitmap != null) {
                             ivInquiryImage.setImageBitmap(finalBitmap);

@@ -13,6 +13,9 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
 
     private final List<PharmacyReplyModel> replyList;
     private final OnReplyActionListener listener;
+    // Only the customer who posted this inquiry is allowed to select a pharmacy's offer.
+    // Defaults to false (hidden) until the Activity confirms ownership.
+    private boolean canSelectPharmacy = false;
 
     public interface OnReplyActionListener {
         void onViewProfileClick(PharmacyReplyModel reply);
@@ -24,6 +27,11 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
     public PharmacyReplyAdapter(List<PharmacyReplyModel> replyList, OnReplyActionListener listener) {
         this.replyList = replyList;
         this.listener = listener;
+    }
+
+    public void setCanSelectPharmacy(boolean canSelectPharmacy) {
+        this.canSelectPharmacy = canSelectPharmacy;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -89,9 +97,14 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
         });
 
         if (holder.btnAcceptOffer != null) {
-            holder.btnAcceptOffer.setOnClickListener(v -> {
-                if (listener != null) listener.onAcceptOfferClick(reply);
-            });
+            if (canSelectPharmacy) {
+                holder.btnAcceptOffer.setVisibility(View.VISIBLE);
+                holder.btnAcceptOffer.setOnClickListener(v -> {
+                    if (listener != null) listener.onAcceptOfferClick(reply);
+                });
+            } else {
+                holder.btnAcceptOffer.setVisibility(View.GONE);
+            }
         }
     }
 
