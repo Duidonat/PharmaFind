@@ -89,6 +89,14 @@ public class MainActivity extends AppCompatActivity {
         android.widget.CheckBox cbShowPassword = dialogView.findViewById(R.id.cbShowPassword);
         android.widget.CheckBox cbRememberMe = dialogView.findViewById(R.id.cbRememberMe);
         MaterialButton btnLoginSubmit = dialogView.findViewById(R.id.btnLoginSubmit);
+        TextView tvForgotPassword = dialogView.findViewById(R.id.tvForgotPassword);
+
+        if (tvForgotPassword != null) {
+            tvForgotPassword.setOnClickListener(v -> {
+                bottomSheetDialog.dismiss();
+                showResetPasswordDialog();
+            });
+        }
 
         if (cbShowPassword != null && etPassword != null) {
             cbShowPassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -214,6 +222,127 @@ public class MainActivity extends AppCompatActivity {
 
             } catch (SQLException e) {
                 Log.e("MainActivity", "Login Error: " + e.getMessage());
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+    private void showResetPasswordDialog() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_reset_password, null);
+        bottomSheetDialog.setContentView(dialogView);
+
+        EditText etResetUsername = dialogView.findViewById(R.id.etResetUsername);
+        EditText etResetEmail = dialogView.findViewById(R.id.etResetEmail);
+        EditText etResetNewPassword = dialogView.findViewById(R.id.etResetNewPassword);
+        EditText etResetConfirmPassword = dialogView.findViewById(R.id.etResetConfirmPassword);
+        MaterialButton btnSubmitReset = dialogView.findViewById(R.id.btnSubmitReset);
+
+        if (btnSubmitReset != null) {
+            btnSubmitReset.setOnClickListener(v -> {
+                String username = etResetUsername.getText().toString().trim();
+                String email = etResetEmail.getText().toString().trim();
+                String newPassword = etResetNewPassword.getText().toString().trim();
+                String confirmPassword = etResetConfirmPassword.getText().toString().trim();
+
+                if (username.isEmpty() || email.isEmpty() || newPassword.isEmpty()) {
+                    Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (!newPassword.equals(confirmPassword)) {
+                    Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                btnSubmitReset.setEnabled(false);
+                Toast.makeText(this, "Checking your details...", Toast.LENGTH_SHORT).show();
+                resetPassword(username, email, newPassword, bottomSheetDialog, btnSubmitReset);
+            });
+        }
+
+        View parent = (View) dialogView.getParent();
+        if (parent != null) {
+            parent.setBackgroundResource(android.R.color.transparent);
+        }
+
+        bottomSheetDialog.show();
+    }
+
+    private void resetPassword(String username, String email, String newPassword, BottomSheetDialog dialog, MaterialButton btnSubmit) {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) {
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "Failed to connect to database. Please check connection.", Toast.LENGTH_SHORT).show();
+                });
+                return;
+            }
+
+            try {
+                // Check Customers table first (same order as login)
+                String findCustomerQuery = "SELECT CustomerID FROM dbo.Customers WHERE Username = ? AND Email = ?";
+                PreparedStatement findCustomerStmt = con.prepareStatement(findCustomerQuery);
+                findCustomerStmt.setString(1, username);
+                findCustomerStmt.setString(2, email);
+                ResultSet customerRs = findCustomerStmt.executeQuery();
+
+                if (customerRs.next()) {
+                    int id = customerRs.getInt("CustomerID");
+                    String updateQuery = "UPDATE dbo.Customers SET Password = ? WHERE CustomerID = ?";
+                    PreparedStatement updateStmt = con.prepareStatement(updateQuery);
+                    updateStmt.setString(1, newPassword);
+                    updateStmt.setInt(2, id);
+                    updateStmt.executeUpdate();
+
+                    con.close();
+
+                    mainHandler.post(() -> {
+                        Toast.makeText(MainActivity.this, "Password reset! Please log in with your new password.", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                        showLoginDialog();
+                    });
+                    return;
+                }
+
+                // Check Pharmacies table
+                String findPharmacyQuery = "SELECT PharmacyID FROM dbo.Pharmacies WHERE Username = ? AND Email = ?";
+                PreparedStatement findPharmacyStmt = con.prepareStatement(findPharmacyQuery);
+                findPharmacyStmt.setString(1, username);
+                findPharmacyStmt.setString(2, email);
+                ResultSet pharmacyRs = findPharmacyStmt.executeQuery();
+
+                if (pharmacyRs.next()) {
+                    int id = pharmacyRs.getInt("PharmacyID");
+                    String updateQuery = "UPDATE dbo.Pharmacies SET Password = ? WHERE PharmacyID = ?";
+                    PreparedStatement updateStmt = con.prepareStatement(updateQuery);
+                    updateStmt.setString(1, newPassword);
+                    updateStmt.setInt(2, id);
+                    updateStmt.executeUpdate();
+
+                    con.close();
+
+                    mainHandler.post(() -> {
+                        Toast.makeText(MainActivity.this, "Password reset! Please log in with your new password.", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                        showLoginDialog();
+                    });
+                    return;
+                }
+
+                con.close();
+
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    Toast.makeText(MainActivity.this, "We couldn't verify those details. Check your username and email.", Toast.LENGTH_LONG).show();
+                });
+
+            } catch (SQLException e) {
+                Log.e("MainActivity", "Reset Password Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
                     Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
