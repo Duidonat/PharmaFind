@@ -28,7 +28,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
     private conSQL sqlHelper;
     private int pharmacyId = -1;
 
-    private TextView tvPharmacyNameTitle, tvPharmacyAddress, tvContactInfo, tvEmailInfo, tvOperatingHours, tvStatusInfo;
+    private TextView tvPharmacyNameTitle, tvPharmacyAddress, tvContactInfo, tvEmailInfo, tvOperatingHours, tvStatusInfo, tvPharmacyVerifiedBadge;
 
     private String fullAddressForMaps = "";
     private String contactPhone = "";
@@ -71,6 +71,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
         tvEmailInfo = findViewById(R.id.tvEmailInfo);
         tvOperatingHours = findViewById(R.id.tvOperatingHours);
         tvStatusInfo = findViewById(R.id.tvStatusInfo);
+        tvPharmacyVerifiedBadge = findViewById(R.id.tvPharmacyVerifiedBadge);
 
         MaterialButton btnOpenMaps = findViewById(R.id.btnOpenMaps);
         MaterialButton btnCallPharmacy = findViewById(R.id.btnCallPharmacy);
@@ -167,6 +168,16 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
                         tvEmailInfo.setText("Email: " + (email != null ? email : "N/A"));
                         tvOperatingHours.setText("Operating Hours: " + (hours != null && !hours.isEmpty() ? hours : "8:00 AM - 9:00 PM"));
                         tvStatusInfo.setText("Status: " + (status != null ? status.toUpperCase() : "VERIFIED"));
+
+                        if (tvPharmacyVerifiedBadge != null) {
+                            if ("approved".equalsIgnoreCase(status)) {
+                                tvPharmacyVerifiedBadge.setText("✓ Verified");
+                                tvPharmacyVerifiedBadge.setTextColor(android.graphics.Color.parseColor("#2E7D32"));
+                            } else {
+                                tvPharmacyVerifiedBadge.setText("⏳ Pending Verification");
+                                tvPharmacyVerifiedBadge.setTextColor(android.graphics.Color.parseColor("#F57C00"));
+                            }
+                        }
                     });
                 }
 

@@ -13,8 +13,9 @@ public class PharmacyReplyModel {
     private String pharmacyCity;
     private String pharmacyBarangay;
     private String pharmacyContact;
+    private String pharmacyStatus; // the pharmacy's own account status: 'pending', 'approved', 'rejected'
 
-    public PharmacyReplyModel(int replyId, int inquiryId, int pharmacyId, String pharmacyName, String availabilityStatus, String price, String note, String createdAt, String pharmacyCity, String pharmacyBarangay, String pharmacyContact) {
+    public PharmacyReplyModel(int replyId, int inquiryId, int pharmacyId, String pharmacyName, String availabilityStatus, String price, String note, String createdAt, String pharmacyCity, String pharmacyBarangay, String pharmacyContact, String pharmacyStatus) {
         this.replyId = replyId;
         this.inquiryId = inquiryId;
         this.pharmacyId = pharmacyId;
@@ -26,6 +27,7 @@ public class PharmacyReplyModel {
         this.pharmacyCity = pharmacyCity;
         this.pharmacyBarangay = pharmacyBarangay;
         this.pharmacyContact = pharmacyContact;
+        this.pharmacyStatus = pharmacyStatus;
     }
 
     public int getReplyId() { return replyId; }
@@ -39,4 +41,5 @@ public class PharmacyReplyModel {
     public String getPharmacyCity() { return pharmacyCity; }
     public String getPharmacyBarangay() { return pharmacyBarangay; }
     public String getPharmacyContact() { return pharmacyContact; }
+    public String getPharmacyStatus() { return pharmacyStatus; }
 }

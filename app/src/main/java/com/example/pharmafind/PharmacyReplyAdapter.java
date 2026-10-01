@@ -47,6 +47,16 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
 
         holder.tvPharmacyName.setText(reply.getPharmacyName() != null ? reply.getPharmacyName() : "Pharmacy");
 
+        if (holder.tvPharmacyVerifiedBadge != null) {
+            if ("approved".equalsIgnoreCase(reply.getPharmacyStatus())) {
+                holder.tvPharmacyVerifiedBadge.setText("✓ Verified");
+                holder.tvPharmacyVerifiedBadge.setTextColor(android.graphics.Color.parseColor("#2E7D32"));
+            } else {
+                holder.tvPharmacyVerifiedBadge.setText("⏳ Pending");
+                holder.tvPharmacyVerifiedBadge.setTextColor(android.graphics.Color.parseColor("#F57C00"));
+            }
+        }
+
         String locationDate = "";
         if (reply.getPharmacyBarangay() != null && !reply.getPharmacyBarangay().isEmpty()) {
             locationDate += reply.getPharmacyBarangay() + ", ";
@@ -114,7 +124,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
     }
 
     static class ReplyViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPharmacyName, tvPharmacyLocationDate, tvAvailabilityBadge, tvPrice, tvNote;
+        TextView tvPharmacyName, tvPharmacyLocationDate, tvAvailabilityBadge, tvPrice, tvNote, tvPharmacyVerifiedBadge;
         MaterialButton btnContact, btnViewPharmacyProfile, btnAcceptOffer;
 
         public ReplyViewHolder(@NonNull View itemView) {
@@ -122,6 +132,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
             tvPharmacyName = itemView.findViewById(R.id.tvPharmacyName);
             tvPharmacyLocationDate = itemView.findViewById(R.id.tvPharmacyLocationDate);
             tvAvailabilityBadge = itemView.findViewById(R.id.tvAvailabilityBadge);
+            tvPharmacyVerifiedBadge = itemView.findViewById(R.id.tvPharmacyVerifiedBadge);
             tvPrice = itemView.findViewById(R.id.tvPrice);
             tvNote = itemView.findViewById(R.id.tvNote);
             btnContact = itemView.findViewById(R.id.btnContact);

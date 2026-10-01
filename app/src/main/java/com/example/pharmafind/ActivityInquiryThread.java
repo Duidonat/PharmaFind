@@ -255,7 +255,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
             try {
                 List<PharmacyReplyModel> tempReplies = new ArrayList<>();
-                String query = "SELECT r.ReplyID, r.InquiryID, r.PharmacyID, p.PharmacyName, r.AvailabilityStatus, r.Price, r.Note, CONVERT(VARCHAR, r.CreatedAt, 120) AS CreatedAtStr, p.City, p.Barangay, p.Contact " +
+                String query = "SELECT r.ReplyID, r.InquiryID, r.PharmacyID, p.PharmacyName, r.AvailabilityStatus, r.Price, r.Note, CONVERT(VARCHAR, r.CreatedAt, 120) AS CreatedAtStr, p.City, p.Barangay, p.Contact, p.Status AS PharmacyStatus " +
                         "FROM dbo.PharmacyReplies r " +
                         "LEFT JOIN dbo.Pharmacies p ON r.PharmacyID = p.PharmacyID " +
                         "WHERE r.InquiryID = ? " +
@@ -276,9 +276,10 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String contact = rs.getString("Contact");
+                    String pharmacyStatus = rs.getString("PharmacyStatus");
 
                     tempReplies.add(new PharmacyReplyModel(
-                            replyId, inquiryId, pharmacyId, pharmacyName, availStatus, price, note, createdAt, city, barangay, contact
+                            replyId, inquiryId, pharmacyId, pharmacyName, availStatus, price, note, createdAt, city, barangay, contact, pharmacyStatus
                     ));
                 }
 
