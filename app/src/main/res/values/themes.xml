@@ -5,5 +5,17 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.PharmaFind" parent="Base.Theme.PharmaFind" />
+    <!-- Brand colors live here (not in Base) so they apply in both light and dark mode.
+         Without them, Material falls back to its default purple for checkboxes, chips,
+         the bottom menu, text cursors and date/time pickers. -->
+    <style name="Theme.PharmaFind" parent="Base.Theme.PharmaFind">
+        <item name="colorPrimary">@color/primary_teal</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/teal_container</item>
+        <item name="colorOnPrimaryContainer">@color/primary_dark</item>
+        <item name="colorSecondary">@color/primary_teal</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/teal_container</item>
+        <item name="colorOnSecondaryContainer">@color/primary_dark</item>
+    </style>
 </resources>
