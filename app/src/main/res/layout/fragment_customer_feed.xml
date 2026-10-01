@@ -33,7 +33,7 @@
     <EditText
         android:id="@+id/etSearchFeed"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
+        android:layout_height="48dp"
         android:layout_marginTop="12dp"
         android:background="@drawable/edittext_background"
         android:drawableStart="@android:drawable/ic_menu_search"

@@ -82,7 +82,7 @@
                 android:id="@+id/tvAvailabilityBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/edittext_background"
+                android:background="@drawable/bg_badge"
                 android:backgroundTint="#E8F5E9"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"

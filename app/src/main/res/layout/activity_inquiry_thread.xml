@@ -114,11 +114,12 @@
                             android:id="@+id/tvStatusBadge"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/edittext_background"
-                            android:paddingHorizontal="8dp"
+                            android:background="@drawable/bg_badge"
+                            android:backgroundTint="@color/teal_container"
+                            android:paddingHorizontal="10dp"
                             android:paddingVertical="4dp"
                             android:text="OPEN"
-                            android:textColor="@color/primary_teal"
+                            android:textColor="@color/primary_dark"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -290,7 +291,7 @@
                 <EditText
                     android:id="@+id/etReplyPrice"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:background="@drawable/edittext_background"
                     android:hint="Price (e.g. ₱8.00)"
@@ -302,7 +303,7 @@
                 <EditText
                     android:id="@+id/etReplyNote"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
+                    android:layout_height="48dp"
                     android:layout_marginStart="8dp"
                     android:layout_weight="2"
                     android:background="@drawable/edittext_background"

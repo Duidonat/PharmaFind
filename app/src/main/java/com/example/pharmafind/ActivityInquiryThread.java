@@ -244,6 +244,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         tvMedicineName.setText("Need: " + (medicineName != null ? medicineName : ""));
                         tvDescription.setText(description != null ? description : "");
                         tvStatusBadge.setText(status != null ? status.toUpperCase() : "OPEN");
+                        InquiryAdapter.styleStatusBadge(tvStatusBadge, status);
 
                         // Only the customer who posted this inquiry may select a pharmacy's offer.
                         replyAdapter.setCanSelectPharmacy(isOwner);
@@ -359,7 +360,10 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 mainHandler.post(() -> {
                     if (rows > 0) {
                         Toast.makeText(ActivityInquiryThread.this, "Pharmacy Selected! Opening Store Location...", Toast.LENGTH_LONG).show();
-                        if (tvStatusBadge != null) tvStatusBadge.setText("FULFILLED");
+                        if (tvStatusBadge != null) {
+                            tvStatusBadge.setText("FULFILLED");
+                            InquiryAdapter.styleStatusBadge(tvStatusBadge, "fulfilled");
+                        }
 
                         Intent intent = new Intent(ActivityInquiryThread.this, ActivityPharmacyProfile.class);
                         intent.putExtra("pharmacy_id", reply.getPharmacyId());

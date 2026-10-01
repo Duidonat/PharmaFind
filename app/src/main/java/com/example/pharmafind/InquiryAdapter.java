@@ -1,11 +1,13 @@
 package com.example.pharmafind;
 
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import java.util.List;
@@ -50,6 +52,7 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
 
         if (item.getStatus() != null && !item.getStatus().trim().isEmpty()) {
             holder.tvStatusBadge.setText(item.getStatus().toUpperCase());
+            styleStatusBadge(holder.tvStatusBadge, item.getStatus());
             holder.tvStatusBadge.setVisibility(View.VISIBLE);
         } else {
             holder.tvStatusBadge.setVisibility(View.GONE);
@@ -84,6 +87,16 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
                 }
             });
         }
+    }
+
+    // Colors the status badge: green once a request is fulfilled, teal while it's open.
+    // Also used by ActivityInquiryThread so the badge looks the same on both screens.
+    static void styleStatusBadge(TextView badge, String status) {
+        boolean fulfilled = "fulfilled".equalsIgnoreCase(status);
+        badge.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(badge.getContext(),
+                fulfilled ? R.color.success_container : R.color.teal_container)));
+        badge.setTextColor(ContextCompat.getColor(badge.getContext(),
+                fulfilled ? R.color.on_success_container : R.color.primary_dark));
     }
 
     @Override
