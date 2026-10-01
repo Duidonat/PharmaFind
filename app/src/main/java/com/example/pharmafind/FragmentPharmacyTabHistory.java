@@ -71,7 +71,7 @@ public class FragmentPharmacyTabHistory extends Fragment {
                         "FROM dbo.Inquiries i " +
                         "INNER JOIN dbo.PharmacyReplies r ON i.InquiryID = r.InquiryID " +
                         "WHERE r.PharmacyID = ? " +
-                        "ORDER BY i.CreatedAt DESC";
+                        "ORDER BY CreatedAtStr DESC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, sessionManager.getUserId());
