@@ -63,9 +63,9 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
         
         int replies = item.getReplyCount();
         if (replies == 1) {
-            holder.tvReplyCount.setText("💬 1 Pharmacy Responded");
+            holder.tvReplyCount.setText("1 Pharmacy Responded");
         } else {
-            holder.tvReplyCount.setText("💬 " + replies + " Pharmacy Responses");
+            holder.tvReplyCount.setText("" + replies + " Pharmacy Responses");
         }
 
         // Lists only show that a photo exists. The photo itself is loaded on the request screen,

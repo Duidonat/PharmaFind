@@ -48,7 +48,7 @@ public class CustomerHomeActivity extends AppCompatActivity {
         // Display logged-in user details
         tvWelcomeUser.setText("Welcome, " + session.getFullName() + "!");
         
-        String locationText = "📍 Barangay " + session.getBarangay() + ", " + session.getCity();
+        String locationText = "Barangay " + session.getBarangay() + ", " + session.getCity();
         if (!session.getDistrict().isEmpty()) {
             locationText += " (" + session.getDistrict() + ")";
         }

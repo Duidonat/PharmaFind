@@ -29,7 +29,7 @@
                 android:backgroundTint="@color/primary_teal"
                 android:contentDescription="User Avatar"
                 android:padding="8dp"
-                android:src="@android:drawable/ic_menu_myplaces"
+                android:src="@drawable/ic_person"
                 app:tint="@color/white" />
 
             <LinearLayout
@@ -100,7 +100,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="📎 Photo attached"
+            android:drawablePadding="4dp"
+            android:drawableStart="@drawable/ic_attach_file_14"
+            android:drawableTint="@color/text_gray"
+            android:text="Photo attached"
             android:textColor="@color/text_gray"
             android:textSize="12sp"
             android:visibility="gone" />
@@ -124,7 +127,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="💬 0 Pharmacy Responses"
+                android:drawablePadding="6dp"
+                android:drawableStart="@drawable/ic_chat_bubble_outline_16"
+                android:drawableTint="@color/text_gray"
+                android:text="0 Pharmacy Responses"
                 android:textColor="@color/text_gray"
                 android:textSize="13sp" />
 

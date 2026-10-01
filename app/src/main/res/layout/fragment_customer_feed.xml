@@ -36,7 +36,8 @@
         android:layout_height="48dp"
         android:layout_marginTop="12dp"
         android:background="@drawable/edittext_background"
-        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawableStart="@drawable/ic_search"
+        android:drawableTint="@color/text_gray"
         android:drawablePadding="8dp"
         android:hint="Search medicine name (e.g. Biogesic)..."
         android:inputType="text"
@@ -69,14 +70,14 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🟢 Open Requests" />
+            android:text="Open Requests" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipFulfilled"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="✅ Fulfilled" />
+            android:text="Fulfilled" />
 
     </com.google.android.material.chip.ChipGroup>
 
@@ -119,7 +120,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:contentDescription="Post Medicine Request"
-        android:src="@android:drawable/ic_input_add"
+        android:src="@drawable/ic_add"
         app:backgroundTint="@color/primary_teal"
         app:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"

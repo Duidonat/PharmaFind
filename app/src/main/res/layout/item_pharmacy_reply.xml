@@ -31,7 +31,7 @@
                 android:backgroundTint="#2E7D32"
                 android:contentDescription="Pharmacy Avatar"
                 android:padding="8dp"
-                android:src="@android:drawable/ic_dialog_map"
+                android:src="@drawable/ic_local_pharmacy"
                 app:tint="@color/white" />
 
             <LinearLayout
@@ -61,7 +61,10 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:text="✓ Verified"
+                        android:drawablePadding="3dp"
+                        android:drawableStart="@drawable/ic_verified_14"
+                        android:drawableTint="#2E7D32"
+                        android:text="Verified"
                         android:textColor="#2E7D32"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -132,13 +135,15 @@
                 android:id="@+id/btnContact"
                 android:layout_width="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:text="📞 Call" />
+                app:icon="@drawable/ic_call"
+                android:text="Call" />
 
             <com.google.android.material.button.MaterialButton
                 style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnViewPharmacyProfile"
                 android:layout_width="wrap_content"
-                android:text="📍 Profile &amp; Map" />
+                app:icon="@drawable/ic_location_on"
+                android:text="Profile &amp; Map" />
 
         </LinearLayout>
 
@@ -148,7 +153,8 @@
             android:id="@+id/btnAcceptOffer"
             android:layout_width="match_parent"
             android:layout_marginTop="8dp"
-            android:text="✅ Select Pharmacy" />
+            app:icon="@drawable/ic_check_circle"
+            android:text="Select Pharmacy" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

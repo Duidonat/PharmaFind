@@ -24,7 +24,7 @@
         android:layout_height="32dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Close"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:src="@drawable/ic_close"
         app:tint="@color/text_gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -45,7 +45,7 @@
             android:background="@drawable/circle_background"
             android:backgroundTint="@color/primary_teal"
             android:padding="6dp"
-            android:src="@android:drawable/ic_menu_myplaces"
+            android:src="@drawable/ic_person"
             app:tint="@color/white" />
 
         <TextView
@@ -114,7 +114,7 @@
             android:layout_margin="8dp"
             android:background="@drawable/circle_background"
             android:backgroundTint="#80000000"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:src="@drawable/ic_close"
             app:tint="@color/white" />
 
     </FrameLayout>
@@ -132,7 +132,8 @@
             style="@style/Widget.PharmaFind.Button.Outlined"
             android:id="@+id/btnAddPhoto"
             android:layout_width="wrap_content"
-            android:text="📷 Add Photo" />
+            app:icon="@drawable/ic_photo_camera"
+            android:text="Add Photo" />
 
         <View
             android:layout_width="0dp"

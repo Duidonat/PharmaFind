@@ -55,7 +55,10 @@
             android:layout_height="36dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:text="🗺️ Tile Map"
+            app:icon="@drawable/ic_map"
+            app:iconSize="16dp"
+            app:iconPadding="4dp"
+            android:text="Tile Map"
             android:textColor="@color/white"
             android:textSize="11sp" />
 
@@ -162,7 +165,8 @@
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    android:text="🎯 My GPS" />
+                    app:icon="@drawable/ic_my_location"
+                    android:text="My GPS" />
 
                 <com.google.android.material.button.MaterialButton
                     style="@style/Widget.PharmaFind.Button"

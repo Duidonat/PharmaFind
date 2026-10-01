@@ -81,7 +81,7 @@
                             android:backgroundTint="@color/primary_teal"
                             android:contentDescription="User Avatar"
                             android:padding="8dp"
-                            android:src="@android:drawable/ic_menu_myplaces"
+                            android:src="@drawable/ic_person"
                             app:tint="@color/white" />
 
                         <LinearLayout
@@ -159,7 +159,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="🔒 A photo is attached. Only the requester and pharmacies can view it."
+                        android:drawablePadding="8dp"
+                        android:drawableStart="@drawable/ic_lock_16"
+                        android:drawableTint="@color/text_gray"
+                        android:text="A photo is attached. Only the requester and pharmacies can view it."
                         android:textColor="@color/text_gray"
                         android:textSize="13sp"
                         android:visibility="gone" />
@@ -174,7 +177,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:text="💬 Pharmacy Responses"
+                android:drawablePadding="8dp"
+                android:drawableStart="@drawable/ic_forum_20"
+                android:drawableTint="@color/primary_teal"
+                android:text="Pharmacy Responses"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />

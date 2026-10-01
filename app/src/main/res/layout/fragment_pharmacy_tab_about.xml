@@ -29,7 +29,8 @@
                 style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnEditPharmacyProfileTab"
                 android:layout_width="wrap_content"
-                android:text="✏️ Edit Profile" />
+                app:icon="@drawable/ic_edit"
+                android:text="Edit Profile" />
 
         </LinearLayout>
 

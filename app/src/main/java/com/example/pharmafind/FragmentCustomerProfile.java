@@ -28,7 +28,7 @@ public class FragmentCustomerProfile extends Fragment {
         ViewPager2 viewPager = view.findViewById(R.id.profileViewPager);
 
         tvProfileName.setText(session.getFullName());
-        tvProfileLocation.setText("📍 Barangay " + session.getBarangay() + ", " + session.getCity());
+        tvProfileLocation.setText("Barangay " + session.getBarangay() + ", " + session.getCity());
 
         // Setup ViewPager Adapter for 2 Tabs
         viewPager.setAdapter(new ProfilePagerAdapter(this));

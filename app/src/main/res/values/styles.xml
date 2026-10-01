@@ -5,6 +5,9 @@
 
     <!-- Main action (Log In, Register, Save, Post, Confirm...): filled teal -->
     <style name="Widget.PharmaFind.Button" parent="Widget.Material3.Button">
+        <item name="iconGravity">textStart</item>
+        <item name="iconSize">20dp</item>
+        <item name="iconPadding">8dp</item>
         <item name="android:layout_height">52dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
@@ -17,6 +20,9 @@
 
     <!-- Secondary action (Add Photo, My GPS, Call Store...): teal outline -->
     <style name="Widget.PharmaFind.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="iconGravity">textStart</item>
+        <item name="iconSize">20dp</item>
+        <item name="iconPadding">8dp</item>
         <item name="android:layout_height">52dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
@@ -29,6 +35,9 @@
 
     <!-- Small secondary action inside cards and tabs (Call, Profile & Map, Edit): teal outline -->
     <style name="Widget.PharmaFind.Button.Small" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="iconGravity">textStart</item>
+        <item name="iconSize">18dp</item>
+        <item name="iconPadding">6dp</item>
         <item name="android:layout_height">40dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
@@ -43,6 +52,9 @@
 
     <!-- Small main action (Select Pharmacy, the landing screen's Log In / Register): filled teal -->
     <style name="Widget.PharmaFind.Button.Small.Filled" parent="Widget.Material3.Button">
+        <item name="iconGravity">textStart</item>
+        <item name="iconSize">18dp</item>
+        <item name="iconPadding">6dp</item>
         <item name="android:layout_height">40dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>

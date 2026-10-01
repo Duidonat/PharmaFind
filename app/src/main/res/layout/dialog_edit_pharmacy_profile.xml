@@ -24,7 +24,7 @@
         android:layout_height="32dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Close"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:src="@drawable/ic_close"
         app:tint="@color/text_gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -171,7 +171,10 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📅 Select Date Range"
+                        app:chipIcon="@drawable/ic_event"
+                        app:chipIconSize="16dp"
+                        app:chipIconTint="@color/primary_teal"
+                        android:text="Select Date Range"
                         android:textSize="11sp" />
 
                 </com.google.android.material.chip.ChipGroup>
@@ -222,7 +225,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📍 Store Location Pin (Google Maps)"
+                android:drawablePadding="6dp"
+                android:drawableStart="@drawable/ic_location_on_16"
+                android:drawableTint="@color/primary_teal"
+                android:text="Store Location Pin (Google Maps)"
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -275,14 +281,16 @@
                 android:id="@+id/btnUseCurrentGPSPin"
                 android:layout_width="match_parent"
                 android:layout_marginTop="8dp"
-                android:text="🎯 Auto-Detect My Current GPS Location Pin" />
+                app:icon="@drawable/ic_my_location"
+                android:text="Auto-Detect My Current GPS Location Pin" />
 
             <com.google.android.material.button.MaterialButton
                 style="@style/Widget.PharmaFind.Button.Outlined"
                 android:id="@+id/btnPickPharmacyMap"
                 android:layout_width="match_parent"
                 android:layout_marginTop="8dp"
-                android:text="🗺️ Pick Store Location Manually on Map" />
+                app:icon="@drawable/ic_map"
+                android:text="Pick Store Location Manually on Map" />
 
             <!-- Save Profile Button -->
             <com.google.android.material.button.MaterialButton

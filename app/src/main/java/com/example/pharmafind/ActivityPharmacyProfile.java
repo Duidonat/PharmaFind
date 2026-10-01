@@ -160,7 +160,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
 
                         String addressStr = "Barangay " + finalBarangay + ", " + finalCity;
                         if (!finalDistrict.isEmpty()) addressStr += " (" + finalDistrict + ")";
-                        tvPharmacyAddress.setText("📍 " + addressStr);
+                        tvPharmacyAddress.setText(addressStr);
 
                         fullAddressForMaps = name + " Pharmacy, Barangay " + finalBarangay + ", " + finalCity + ", Philippines";
 
@@ -170,13 +170,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
                         tvStatusInfo.setText("Status: " + (status != null ? status.toUpperCase() : "VERIFIED"));
 
                         if (tvPharmacyVerifiedBadge != null) {
-                            if ("approved".equalsIgnoreCase(status)) {
-                                tvPharmacyVerifiedBadge.setText("✓ Verified");
-                                tvPharmacyVerifiedBadge.setTextColor(android.graphics.Color.parseColor("#2E7D32"));
-                            } else {
-                                tvPharmacyVerifiedBadge.setText("⏳ Pending Verification");
-                                tvPharmacyVerifiedBadge.setTextColor(android.graphics.Color.parseColor("#F57C00"));
-                            }
+                            PharmacyReplyAdapter.styleVerificationBadge(tvPharmacyVerifiedBadge, "approved".equalsIgnoreCase(status), "Pending Verification");
                         }
                     });
                 }

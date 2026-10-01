@@ -317,7 +317,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 mainHandler.post(() -> {
                     replyList.clear();
                     replyList.addAll(tempReplies);
-                    tvRepliesHeader.setText("💬 Pharmacy Responses (" + replyList.size() + ")");
+                    tvRepliesHeader.setText("Pharmacy Responses (" + replyList.size() + ")");
                     replyAdapter.notifyDataSetChanged();
                     if (pbRepliesLoading != null) pbRepliesLoading.setVisibility(View.GONE);
                     if (tvRepliesEmptyState != null) {

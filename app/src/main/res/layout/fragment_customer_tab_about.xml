@@ -29,7 +29,8 @@
                 style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnEditCustomerProfile"
                 android:layout_width="wrap_content"
-                android:text="✏️ Edit Location &amp; Pin" />
+                app:icon="@drawable/ic_edit"
+                android:text="Edit Location &amp; Pin" />
 
         </LinearLayout>
 

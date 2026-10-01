@@ -32,7 +32,7 @@
                 android:layout_height="36dp"
                 android:layout_alignParentEnd="true"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:src="@drawable/ic_close"
                 app:tint="@color/text_gray" />
 
         </RelativeLayout>
@@ -140,14 +140,16 @@
             android:id="@+id/btnUseCustomerGPSPin"
             android:layout_width="match_parent"
             android:layout_marginTop="12dp"
-            android:text="🎯 Auto-Detect Current GPS Location" />
+            app:icon="@drawable/ic_my_location"
+            android:text="Auto-Detect Current GPS Location" />
 
         <com.google.android.material.button.MaterialButton
             style="@style/Widget.PharmaFind.Button.Outlined"
             android:id="@+id/btnPickCustomerMap"
             android:layout_width="match_parent"
             android:layout_marginTop="8dp"
-            android:text="🗺️ Pick Location Manually on Map" />
+            app:icon="@drawable/ic_map"
+            android:text="Pick Location Manually on Map" />
 
         <com.google.android.material.button.MaterialButton
             style="@style/Widget.PharmaFind.Button"

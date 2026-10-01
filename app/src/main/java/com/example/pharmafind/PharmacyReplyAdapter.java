@@ -1,10 +1,12 @@
 package com.example.pharmafind;
 
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.widget.TextViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import java.util.List;
@@ -48,13 +50,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
         holder.tvPharmacyName.setText(reply.getPharmacyName() != null ? reply.getPharmacyName() : "Pharmacy");
 
         if (holder.tvPharmacyVerifiedBadge != null) {
-            if ("approved".equalsIgnoreCase(reply.getPharmacyStatus())) {
-                holder.tvPharmacyVerifiedBadge.setText("✓ Verified");
-                holder.tvPharmacyVerifiedBadge.setTextColor(android.graphics.Color.parseColor("#2E7D32"));
-            } else {
-                holder.tvPharmacyVerifiedBadge.setText("⏳ Pending");
-                holder.tvPharmacyVerifiedBadge.setTextColor(android.graphics.Color.parseColor("#F57C00"));
-            }
+            styleVerificationBadge(holder.tvPharmacyVerifiedBadge, "approved".equalsIgnoreCase(reply.getPharmacyStatus()), "Pending");
         }
 
         String locationDate = "";
@@ -116,6 +112,16 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
                 holder.btnAcceptOffer.setVisibility(View.GONE);
             }
         }
+    }
+
+    // Green "Verified" with a check badge, or amber "Pending" with an hourglass. Also used by
+    // ActivityPharmacyProfile so the badge looks the same on both screens.
+    static void styleVerificationBadge(TextView badge, boolean verified, String pendingLabel) {
+        int color = android.graphics.Color.parseColor(verified ? "#2E7D32" : "#F57C00");
+        badge.setText(verified ? "Verified" : pendingLabel);
+        badge.setTextColor(color);
+        badge.setCompoundDrawablesRelativeWithIntrinsicBounds(verified ? R.drawable.ic_verified_14 : R.drawable.ic_hourglass_empty_14, 0, 0, 0);
+        TextViewCompat.setCompoundDrawableTintList(badge, ColorStateList.valueOf(color));
     }
 
     @Override

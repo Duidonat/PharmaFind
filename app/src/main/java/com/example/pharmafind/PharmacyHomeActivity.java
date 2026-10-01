@@ -54,7 +54,7 @@ public class PharmacyHomeActivity extends AppCompatActivity {
         }
 
         tvPharmacyWelcome.setText("Welcome, " + sessionManager.getFullName());
-        tvPharmacyLocation.setText("📍 Barangay " + sessionManager.getBarangay() + ", " + sessionManager.getCity());
+        tvPharmacyLocation.setText("Barangay " + sessionManager.getBarangay() + ", " + sessionManager.getCity());
 
         btnLogout.setOnClickListener(v -> {
             sessionManager.logoutUser();
