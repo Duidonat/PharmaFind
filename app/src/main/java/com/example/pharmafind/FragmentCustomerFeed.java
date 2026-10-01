@@ -142,9 +142,16 @@ public class FragmentCustomerFeed extends Fragment {
         }
 
         ensureTablesExist();
-        loadInquiriesFromDB();
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload every time this screen becomes visible again (e.g. returning from a
+        // request thread), so reply counts and statuses don't stay stale.
+        loadInquiriesFromDB();
     }
 
     private void filterInquiries() {

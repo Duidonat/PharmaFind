@@ -60,9 +60,15 @@ public class FragmentCustomerTabHistory extends Fragment {
         });
         rvMyRequests.setAdapter(inquiryAdapter);
 
-        loadMyInquiriesFromDB();
-
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload every time this screen becomes visible again (e.g. returning from a
+        // request thread), so reply counts and statuses don't stay stale.
+        loadMyInquiriesFromDB();
     }
 
     private void loadMyInquiriesFromDB() {

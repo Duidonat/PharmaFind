@@ -60,9 +60,15 @@ public class FragmentPharmacyTabHistory extends Fragment {
         });
         rvRepliedRequests.setAdapter(inquiryAdapter);
 
-        loadRepliedInquiriesFromDB();
-
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload every time this screen becomes visible again (e.g. returning from a
+        // request thread), so reply counts and statuses don't stay stale.
+        loadRepliedInquiriesFromDB();
     }
 
     private void loadRepliedInquiriesFromDB() {
