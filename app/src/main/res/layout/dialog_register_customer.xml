@@ -296,13 +296,10 @@
                     android:inputType="textPassword" />
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button"
                     android:id="@+id/btnSubmitRegister"
                     android:layout_width="match_parent"
-                    android:layout_height="60dp"
-                    android:text="@string/register"
-                    android:textAllCaps="false"
-                    app:cornerRadius="30dp"
-                    app:backgroundTint="@color/primary_teal" />
+                    android:text="@string/register" />
 
             </LinearLayout>
         </ScrollView>

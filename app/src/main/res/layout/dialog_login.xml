@@ -127,14 +127,11 @@
                 app:layout_constraintTop_toTopOf="@id/cbRememberMe" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button"
                 android:id="@+id/btnLoginSubmit"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
                 android:layout_marginTop="24dp"
                 android:text="@string/log_in"
-                android:textAllCaps="false"
-                app:cornerRadius="30dp"
-                app:backgroundTint="@color/primary_teal"
                 app:layout_constraintTop_toBottomOf="@id/cbRememberMe" />
 
             <View
@@ -171,14 +168,11 @@
                 app:layout_constraintTop_toTopOf="@id/tvOr" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button"
                 android:id="@+id/btnGoogleSignIn"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
                 android:layout_marginTop="24dp"
                 android:text="@string/sign_in_with_google"
-                android:textAllCaps="false"
-                app:cornerRadius="30dp"
-                app:backgroundTint="@color/primary_teal"
                 app:layout_constraintTop_toBottomOf="@id/tvOr" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>

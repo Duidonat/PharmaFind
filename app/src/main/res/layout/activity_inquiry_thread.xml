@@ -316,14 +316,11 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button"
                 android:id="@+id/btnSubmitPharmacyReply"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
                 android:layout_marginTop="10dp"
-                android:text="Submit Pharmacy Response"
-                android:textAllCaps="false"
-                app:backgroundTint="@color/primary_teal"
-                app:cornerRadius="22dp" />
+                android:text="Submit Pharmacy Response" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

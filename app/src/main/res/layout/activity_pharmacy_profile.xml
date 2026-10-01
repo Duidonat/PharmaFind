@@ -101,28 +101,20 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button"
                     android:id="@+id/btnOpenMaps"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1"
-                    android:text="🗺️ View Map Location"
-                    android:textAllCaps="false"
-                    app:backgroundTint="@color/primary_teal"
-                    app:cornerRadius="26dp" />
+                    android:text="🗺️ View Map Location" />
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button.Outlined"
                     android:id="@+id/btnCallPharmacy"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
                     android:layout_marginStart="6dp"
                     android:layout_weight="1"
-                    android:text="📞 Call Store"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary_teal"
-                    app:cornerRadius="26dp"
-                    app:strokeColor="@color/primary_teal" />
+                    android:text="📞 Call Store" />
 
             </LinearLayout>
 

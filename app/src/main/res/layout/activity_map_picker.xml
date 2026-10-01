@@ -157,27 +157,20 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button.Outlined"
                     android:id="@+id/btnMyGpsLocation"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
-                    android:text="🎯 My GPS"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary_teal"
-                    app:strokeColor="@color/primary_teal" />
+                    android:text="🎯 My GPS" />
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button"
                     android:id="@+id/btnConfirmMapLocation"
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
                     android:layout_weight="1.5"
                     android:layout_marginStart="6dp"
-                    android:text="Confirm Location Pin"
-                    android:textAllCaps="false"
-                    app:backgroundTint="@color/primary_teal"
-                    app:cornerRadius="24dp" />
+                    android:text="Confirm Location Pin" />
 
             </LinearLayout>
 

@@ -129,14 +129,10 @@
         app:layout_constraintTop_toBottomOf="@id/photoPreviewContainer">
 
         <com.google.android.material.button.MaterialButton
+            style="@style/Widget.PharmaFind.Button.Outlined"
             android:id="@+id/btnAddPhoto"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="📷 Add Photo"
-            android:textAllCaps="false"
-            android:textColor="@color/primary_teal"
-            app:strokeColor="@color/primary_teal" />
+            android:text="📷 Add Photo" />
 
         <View
             android:layout_width="0dp"
@@ -144,13 +140,10 @@
             android:layout_weight="1" />
 
         <com.google.android.material.button.MaterialButton
+            style="@style/Widget.PharmaFind.Button"
             android:id="@+id/btnPostInquiry"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:text="Post Inquiry"
-            android:textAllCaps="false"
-            app:backgroundTint="@color/primary_teal"
-            app:cornerRadius="24dp" />
+            android:text="Post Inquiry" />
 
     </LinearLayout>
 

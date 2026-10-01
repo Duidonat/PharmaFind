@@ -102,30 +102,20 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button.Outlined"
                     android:id="@+id/btnOpeningTime"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
                     android:layout_marginEnd="4dp"
                     android:layout_weight="1"
-                    android:text="Opening: 8:00 AM"
-                    android:textAllCaps="false"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
-                    app:strokeColor="@color/text_gray" />
+                    android:text="Opening: 8:00 AM" />
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button.Outlined"
                     android:id="@+id/btnClosingTime"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
                     android:layout_marginStart="4dp"
                     android:layout_weight="1"
-                    android:text="Closing: 9:00 PM"
-                    android:textAllCaps="false"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
-                    app:strokeColor="@color/text_gray" />
+                    android:text="Closing: 9:00 PM" />
 
             </LinearLayout>
 
@@ -281,37 +271,26 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button.Outlined"
                 android:id="@+id/btnUseCurrentGPSPin"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
                 android:layout_marginTop="8dp"
-                android:text="🎯 Auto-Detect My Current GPS Location Pin"
-                android:textAllCaps="false"
-                android:textColor="@color/primary_teal"
-                app:strokeColor="@color/primary_teal" />
+                android:text="🎯 Auto-Detect My Current GPS Location Pin" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button.Outlined"
                 android:id="@+id/btnPickPharmacyMap"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
                 android:layout_marginTop="8dp"
-                android:text="🗺️ Pick Store Location Manually on Map"
-                android:textAllCaps="false"
-                android:textColor="@color/primary_teal"
-                app:strokeColor="@color/primary_teal" />
+                android:text="🗺️ Pick Store Location Manually on Map" />
 
             <!-- Save Profile Button -->
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button"
                 android:id="@+id/btnSavePharmacyProfile"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
                 android:layout_marginTop="20dp"
-                android:text="Save Profile &amp; Location Pin"
-                android:textAllCaps="false"
-                app:backgroundTint="@color/primary_teal"
-                app:cornerRadius="26dp" />
+                android:text="Save Profile &amp; Location Pin" />
 
         </LinearLayout>
     </ScrollView>
