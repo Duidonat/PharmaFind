@@ -9,8 +9,9 @@
     <LinearLayout
         android:id="@+id/toolbarChat"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/white"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
+        android:background="@color/primary_dark"
         android:elevation="3dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -24,7 +25,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_arrow_back"
-            app:tint="@color/black" />
+            app:tint="@color/white" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -37,7 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Chat Partner"
-                android:textColor="@color/black"
+                android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -46,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Inquiry Direct Message"
-                android:textColor="@color/text_gray"
+                android:textColor="#E0E0E0"
                 android:textSize="12sp" />
 
         </LinearLayout>

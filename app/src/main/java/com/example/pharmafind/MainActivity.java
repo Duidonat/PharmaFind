@@ -14,6 +14,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -51,6 +52,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         EdgeToEdge.enable(this);
+        // This screen is light, so use dark status/navigation bar icons. Otherwise they follow the
+        // phone's dark mode and turn white, disappearing against the light background.
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView()).setAppearanceLightStatusBars(true);
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView()).setAppearanceLightNavigationBars(true);
         setContentView(R.layout.activity_main);
 
         sqlHelper = new conSQL();
