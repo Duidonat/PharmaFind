@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,8 +41,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
     private UserSessionManager sessionManager;
     private int inquiryId = -1;
 
-    private TextView tvCustomerName, tvLocationAndDate, tvStatusBadge, tvMedicineName, tvDescription, tvRepliesHeader;
+    private TextView tvCustomerName, tvLocationAndDate, tvStatusBadge, tvMedicineName, tvDescription, tvRepliesHeader, tvRepliesEmptyState;
     private ImageView ivInquiryImage;
+    private ProgressBar pbRepliesLoading;
     private RecyclerView rvReplies;
     private PharmacyReplyAdapter replyAdapter;
     private List<PharmacyReplyModel> replyList;
@@ -111,6 +113,8 @@ public class ActivityInquiryThread extends AppCompatActivity {
         tvMedicineName = findViewById(R.id.tvMedicineName);
         tvDescription = findViewById(R.id.tvDescription);
         tvRepliesHeader = findViewById(R.id.tvRepliesHeader);
+        tvRepliesEmptyState = findViewById(R.id.tvRepliesEmptyState);
+        pbRepliesLoading = findViewById(R.id.pbRepliesLoading);
         ivInquiryImage = findViewById(R.id.ivInquiryImage);
 
         rvReplies = findViewById(R.id.rvReplies);
@@ -249,9 +253,15 @@ public class ActivityInquiryThread extends AppCompatActivity {
     }
 
     private void loadPharmacyReplies() {
+        if (pbRepliesLoading != null) pbRepliesLoading.setVisibility(View.VISIBLE);
+        if (tvRepliesEmptyState != null) tvRepliesEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showRepliesError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             try {
                 List<PharmacyReplyModel> tempReplies = new ArrayList<>();
@@ -290,12 +300,26 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     replyList.addAll(tempReplies);
                     tvRepliesHeader.setText("💬 Pharmacy Responses (" + replyList.size() + ")");
                     replyAdapter.notifyDataSetChanged();
+                    if (pbRepliesLoading != null) pbRepliesLoading.setVisibility(View.GONE);
+                    if (tvRepliesEmptyState != null) {
+                        tvRepliesEmptyState.setText("No pharmacy responses yet.");
+                        tvRepliesEmptyState.setVisibility(replyList.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
                 });
 
             } catch (SQLException e) {
                 Log.e("ActivityInquiryThread", "Error loading pharmacy replies: " + e.getMessage());
+                mainHandler.post(() -> showRepliesError("Couldn't load pharmacy responses. Please try again."));
             }
         });
+    }
+
+    private void showRepliesError(String message) {
+        if (pbRepliesLoading != null) pbRepliesLoading.setVisibility(View.GONE);
+        if (tvRepliesEmptyState != null) {
+            tvRepliesEmptyState.setText(message);
+            tvRepliesEmptyState.setVisibility(View.VISIBLE);
+        }
     }
 
     private void markInquiryFulfilled(PharmacyReplyModel reply) {

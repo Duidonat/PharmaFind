@@ -8,6 +8,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -28,6 +30,8 @@ public class FragmentCustomerTabHistory extends Fragment {
     private UserSessionManager sessionManager;
     private InquiryAdapter inquiryAdapter;
     private List<InquiryModel> myInquiryList;
+    private ProgressBar pbHistoryLoading;
+    private TextView tvHistoryEmptyState;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -46,6 +50,8 @@ public class FragmentCustomerTabHistory extends Fragment {
         View view = inflater.inflate(R.layout.fragment_customer_tab_history, container, false);
 
         RecyclerView rvMyRequests = view.findViewById(R.id.rvMyRequests);
+        pbHistoryLoading = view.findViewById(R.id.pbHistoryLoading);
+        tvHistoryEmptyState = view.findViewById(R.id.tvHistoryEmptyState);
         rvMyRequests.setLayoutManager(new LinearLayoutManager(getContext()));
         inquiryAdapter = new InquiryAdapter(myInquiryList, item -> {
             Intent intent = new Intent(getContext(), ActivityInquiryThread.class);
@@ -60,9 +66,15 @@ public class FragmentCustomerTabHistory extends Fragment {
     }
 
     private void loadMyInquiriesFromDB() {
+        if (pbHistoryLoading != null) pbHistoryLoading.setVisibility(View.VISIBLE);
+        if (tvHistoryEmptyState != null) tvHistoryEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showHistoryError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             try {
                 List<InquiryModel> tempInquiries = new ArrayList<>();
@@ -103,12 +115,26 @@ public class FragmentCustomerTabHistory extends Fragment {
                     if (inquiryAdapter != null) {
                         inquiryAdapter.notifyDataSetChanged();
                     }
+                    if (pbHistoryLoading != null) pbHistoryLoading.setVisibility(View.GONE);
+                    if (tvHistoryEmptyState != null) {
+                        tvHistoryEmptyState.setText("No requests posted yet.");
+                        tvHistoryEmptyState.setVisibility(myInquiryList.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
                 });
 
             } catch (SQLException e) {
                 Log.e("CustomerTabHistory", "Load My Inquiries Error: " + e.getMessage());
+                mainHandler.post(() -> showHistoryError("Couldn't load your requests. Please try again."));
             }
         });
+    }
+
+    private void showHistoryError(String message) {
+        if (pbHistoryLoading != null) pbHistoryLoading.setVisibility(View.GONE);
+        if (tvHistoryEmptyState != null) {
+            tvHistoryEmptyState.setText(message);
+            tvHistoryEmptyState.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -39,6 +41,9 @@ public class FragmentPharmacyFeed extends Fragment {
     private String currentSearchQuery = "";
     private String currentStatusFilter = "all";
 
+    private ProgressBar pbPharmacyFeedLoading;
+    private TextView tvPharmacyFeedEmptyState;
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -58,6 +63,8 @@ public class FragmentPharmacyFeed extends Fragment {
 
         etSearchFeed = view.findViewById(R.id.etSearchPharmacyFeed);
         chipGroupFilter = view.findViewById(R.id.chipGroupPharmacyFilter);
+        pbPharmacyFeedLoading = view.findViewById(R.id.pbPharmacyFeedLoading);
+        tvPharmacyFeedEmptyState = view.findViewById(R.id.tvPharmacyFeedEmptyState);
 
         RecyclerView rvInquiries = view.findViewById(R.id.rvPharmacyInquiries);
         rvInquiries.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -126,12 +133,35 @@ public class FragmentPharmacyFeed extends Fragment {
         if (inquiryAdapter != null) {
             inquiryAdapter.notifyDataSetChanged();
         }
+
+        if (tvPharmacyFeedEmptyState != null) {
+            if (displayedInquiriesList.isEmpty()) {
+                tvPharmacyFeedEmptyState.setText("No requests found.");
+                tvPharmacyFeedEmptyState.setVisibility(View.VISIBLE);
+            } else {
+                tvPharmacyFeedEmptyState.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void showFeedError(String message) {
+        if (pbPharmacyFeedLoading != null) pbPharmacyFeedLoading.setVisibility(View.GONE);
+        if (tvPharmacyFeedEmptyState != null) {
+            tvPharmacyFeedEmptyState.setText(message);
+            tvPharmacyFeedEmptyState.setVisibility(View.VISIBLE);
+        }
     }
 
     private void loadLocalInquiriesFromDB() {
+        if (pbPharmacyFeedLoading != null) pbPharmacyFeedLoading.setVisibility(View.VISIBLE);
+        if (tvPharmacyFeedEmptyState != null) tvPharmacyFeedEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showFeedError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             try {
                 List<InquiryModel> tempInquiries = new ArrayList<>();
@@ -181,11 +211,13 @@ public class FragmentPharmacyFeed extends Fragment {
                 mainHandler.post(() -> {
                     allInquiriesList.clear();
                     allInquiriesList.addAll(tempInquiries);
+                    if (pbPharmacyFeedLoading != null) pbPharmacyFeedLoading.setVisibility(View.GONE);
                     filterInquiries();
                 });
 
             } catch (SQLException e) {
                 Log.e("FragmentPharmacyFeed", "Error loading local inquiries: " + e.getMessage());
+                mainHandler.post(() -> showFeedError("Couldn't load requests. Please try again."));
             }
         });
     }

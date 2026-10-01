@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
@@ -56,6 +57,9 @@ public class FragmentCustomerFeed extends Fragment {
     private String currentSearchQuery = "";
     private String currentStatusFilter = "all"; // 'all', 'open', 'fulfilled'
 
+    private ProgressBar pbFeedLoading;
+    private TextView tvFeedEmptyState;
+
     private ActivityResultLauncher<String> imagePickerLauncher;
     private ImageView ivAttachedPhotoDialog;
     private FrameLayout photoPreviewContainerDialog;
@@ -89,6 +93,8 @@ public class FragmentCustomerFeed extends Fragment {
 
         etSearchFeed = view.findViewById(R.id.etSearchFeed);
         chipGroupFilter = view.findViewById(R.id.chipGroupFilter);
+        pbFeedLoading = view.findViewById(R.id.pbFeedLoading);
+        tvFeedEmptyState = view.findViewById(R.id.tvFeedEmptyState);
 
         RecyclerView rvInquiries = view.findViewById(R.id.rvInquiries);
         rvInquiries.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -164,6 +170,23 @@ public class FragmentCustomerFeed extends Fragment {
 
         if (inquiryAdapter != null) {
             inquiryAdapter.notifyDataSetChanged();
+        }
+
+        if (tvFeedEmptyState != null) {
+            if (displayedInquiriesList.isEmpty()) {
+                tvFeedEmptyState.setText("No requests found.");
+                tvFeedEmptyState.setVisibility(View.VISIBLE);
+            } else {
+                tvFeedEmptyState.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void showFeedError(String message) {
+        if (pbFeedLoading != null) pbFeedLoading.setVisibility(View.GONE);
+        if (tvFeedEmptyState != null) {
+            tvFeedEmptyState.setText(message);
+            tvFeedEmptyState.setVisibility(View.VISIBLE);
         }
     }
 
@@ -243,9 +266,15 @@ public class FragmentCustomerFeed extends Fragment {
     }
 
     private void loadInquiriesFromDB() {
+        if (pbFeedLoading != null) pbFeedLoading.setVisibility(View.VISIBLE);
+        if (tvFeedEmptyState != null) tvFeedEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showFeedError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             ensureTablesExistInternal(con);
 
@@ -283,11 +312,13 @@ public class FragmentCustomerFeed extends Fragment {
                 mainHandler.post(() -> {
                     allInquiriesList.clear();
                     allInquiriesList.addAll(tempInquiries);
+                    if (pbFeedLoading != null) pbFeedLoading.setVisibility(View.GONE);
                     filterInquiries();
                 });
 
             } catch (SQLException e) {
                 Log.e("FragmentCustomerFeed", "Load Inquiries Error: " + e.getMessage());
+                mainHandler.post(() -> showFeedError("Couldn't load requests. Please try again."));
             }
         });
     }

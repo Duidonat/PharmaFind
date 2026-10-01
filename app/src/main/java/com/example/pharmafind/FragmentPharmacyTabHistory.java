@@ -8,6 +8,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -28,6 +30,8 @@ public class FragmentPharmacyTabHistory extends Fragment {
     private UserSessionManager sessionManager;
     private InquiryAdapter inquiryAdapter;
     private List<InquiryModel> repliedInquiryList;
+    private ProgressBar pbPharmacyHistoryLoading;
+    private TextView tvPharmacyHistoryEmptyState;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -46,6 +50,8 @@ public class FragmentPharmacyTabHistory extends Fragment {
         View view = inflater.inflate(R.layout.fragment_pharmacy_tab_history, container, false);
 
         RecyclerView rvRepliedRequests = view.findViewById(R.id.rvRepliedRequests);
+        pbPharmacyHistoryLoading = view.findViewById(R.id.pbPharmacyHistoryLoading);
+        tvPharmacyHistoryEmptyState = view.findViewById(R.id.tvPharmacyHistoryEmptyState);
         rvRepliedRequests.setLayoutManager(new LinearLayoutManager(getContext()));
         inquiryAdapter = new InquiryAdapter(repliedInquiryList, item -> {
             Intent intent = new Intent(getContext(), ActivityInquiryThread.class);
@@ -60,9 +66,15 @@ public class FragmentPharmacyTabHistory extends Fragment {
     }
 
     private void loadRepliedInquiriesFromDB() {
+        if (pbPharmacyHistoryLoading != null) pbPharmacyHistoryLoading.setVisibility(View.VISIBLE);
+        if (tvPharmacyHistoryEmptyState != null) tvPharmacyHistoryEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showHistoryError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             try {
                 List<InquiryModel> tempInquiries = new ArrayList<>();
@@ -104,12 +116,26 @@ public class FragmentPharmacyTabHistory extends Fragment {
                     if (inquiryAdapter != null) {
                         inquiryAdapter.notifyDataSetChanged();
                     }
+                    if (pbPharmacyHistoryLoading != null) pbPharmacyHistoryLoading.setVisibility(View.GONE);
+                    if (tvPharmacyHistoryEmptyState != null) {
+                        tvPharmacyHistoryEmptyState.setText("You haven't responded to any requests yet.");
+                        tvPharmacyHistoryEmptyState.setVisibility(repliedInquiryList.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
                 });
 
             } catch (SQLException e) {
                 Log.e("PharmacyTabHistory", "Load Replied Inquiries Error: " + e.getMessage());
+                mainHandler.post(() -> showHistoryError("Couldn't load your responses. Please try again."));
             }
         });
+    }
+
+    private void showHistoryError(String message) {
+        if (pbPharmacyHistoryLoading != null) pbPharmacyHistoryLoading.setVisibility(View.GONE);
+        if (tvPharmacyHistoryEmptyState != null) {
+            tvPharmacyHistoryEmptyState.setText(message);
+            tvPharmacyHistoryEmptyState.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
