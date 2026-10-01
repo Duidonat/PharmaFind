@@ -56,174 +56,461 @@
                     android:textColor="@color/black"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:layout_marginBottom="24dp"/>
+                    android:layout_marginBottom="4dp"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/pharmacy_name"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_gravity="center"
+                    android:text="Fields marked * are required"
+                    android:textColor="@color/text_gray"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="Store"
+                    android:textColor="@color/primary_dark"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@color/divider_color" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/pharmacy_name"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" *"
+                        android:textColor="@color/error_red"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etPharmacyName"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    android:maxLength="255" />
+
+                <!-- Shown under the field by MainActivity.setFieldError() -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/city"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="24dp"
+                    android:text="Address"
+                    android:textColor="@color/primary_dark"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@color/divider_color" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/city"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" *"
+                        android:textColor="@color/error_red"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etCity"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    android:maxLength="100" />
 
+                <!-- Shown under the field by MainActivity.setFieldError() -->
                 <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/barangay"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/barangay"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" *"
+                        android:textColor="@color/error_red"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etBarangay"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    android:maxLength="100" />
 
+                <!-- Shown under the field by MainActivity.setFieldError() -->
                 <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/district"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/district"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="  (optional)"
+                        android:textColor="@color/text_gray"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etDistrict"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    android:maxLength="100" />
+
+                <!-- Shown under the field by MainActivity.setFieldError() -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/email"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="24dp"
+                    android:text="Contact &amp; Account"
+                    android:textColor="@color/primary_dark"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@color/divider_color" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/email"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" *"
+                        android:textColor="@color/error_red"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etEmail"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="textEmailAddress" />
+                    android:inputType="textEmailAddress"
+                    android:maxLength="255" />
 
+                <!-- Shown under the field by MainActivity.setFieldError() -->
                 <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/contact"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/contact"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" *"
+                        android:textColor="@color/error_red"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etContact"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="phone" />
+                    android:inputType="phone"
+                    android:maxLength="20" />
 
+                <!-- Shown under the field by MainActivity.setFieldError() -->
                 <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/username"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/username"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" *"
+                        android:textColor="@color/error_red"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etUsername"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    android:maxLength="50" />
 
+                <!-- Shown under the field by MainActivity.setFieldError() -->
                 <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/password"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/password"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" *"
+                        android:textColor="@color/error_red"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etPassword"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="12dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="textPassword" />
+                    android:inputType="textPassword"
+                    android:maxLength="64" />
 
+                <!-- Shown under the field by MainActivity.setFieldError() -->
                 <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/confirm_password"
-                    android:textColor="@color/black"
-                    android:textSize="14sp" />
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/confirm_password"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" *"
+                        android:textColor="@color/error_red"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etConfirmPassword"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
                     android:layout_marginTop="4dp"
-                    android:layout_marginBottom="24dp"
+                    android:layout_marginBottom="4dp"
                     android:background="@drawable/edittext_background"
                     android:paddingHorizontal="12dp"
                     android:textColor="@color/black"
-                    android:inputType="textPassword" />
+                    android:inputType="textPassword"
+                    android:maxLength="64" />
+
+                <!-- Shown under the field by MainActivity.setFieldError() -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:tag="fieldError"
+                    android:textColor="@color/error_red"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
 
                 <com.google.android.material.button.MaterialButton
                     style="@style/Widget.PharmaFind.Button"
                     android:id="@+id/btnSubmitRegisterPharmacy"
                     android:layout_width="match_parent"
+                    android:layout_marginTop="24dp"
                     android:text="@string/register" />
 
             </LinearLayout>

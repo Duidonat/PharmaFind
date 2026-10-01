@@ -2,11 +2,16 @@ package com.example.pharmafind;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -419,6 +424,8 @@ public class MainActivity extends AppCompatActivity {
         EditText etConfirmPassword = dialogView.findViewById(R.id.etConfirmPassword);
         MaterialButton btnSubmit = dialogView.findViewById(R.id.btnSubmitRegisterPharmacy);
 
+        clearErrorsWhileTyping(etPharmacyName, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
+
         btnSubmit.setOnClickListener(v -> {
             String pharmacyName = etPharmacyName.getText().toString().trim();
             String city = etCity.getText().toString().trim();
@@ -430,8 +437,14 @@ public class MainActivity extends AppCompatActivity {
             String password = etPassword.getText().toString().trim();
             String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-            if (!password.equals(confirmPassword)) {
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            boolean valid = true;
+            valid &= checkRequired(etPharmacyName, pharmacyName, "Enter the pharmacy name");
+            valid &= checkRequired(etCity, city, "Enter your city");
+            valid &= checkRequired(etBarangay, barangay, "Enter your barangay");
+            valid &= checkContactAndAccount(etEmail, etContact, etUsername, etPassword, etConfirmPassword, email, contact, username, password, confirmPassword);
+            if (!valid) {
+                Toast.makeText(this, "Please fix the highlighted fields", Toast.LENGTH_SHORT).show();
+                scrollToFirstError(etPharmacyName, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
                 return;
             }
 
@@ -490,7 +503,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MainActivity", "Register Pharmacy Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, isDuplicateKeyError(e) ? "That username or email is already registered. Try another one." : "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -536,6 +549,8 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        clearErrorsWhileTyping(etFirstName, etSurname, etAge, etBirthDate, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
+
         btnSubmit.setOnClickListener(v -> {
             String firstName = etFirstName.getText().toString().trim();
             String surname = etSurname.getText().toString().trim();
@@ -551,18 +566,21 @@ public class MainActivity extends AppCompatActivity {
             String password = etPassword.getText().toString().trim();
             String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-            if (!password.equals(confirmPassword)) {
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            boolean valid = true;
+            valid &= checkRequired(etFirstName, firstName, "Enter your first name");
+            valid &= checkRequired(etSurname, surname, "Enter your surname");
+            valid &= checkAge(etAge, ageStr);
+            valid &= checkRequired(etBirthDate, birthDate, "Pick your birth date");
+            valid &= checkRequired(etCity, city, "Enter your city");
+            valid &= checkRequired(etBarangay, barangay, "Enter your barangay");
+            valid &= checkContactAndAccount(etEmail, etContact, etUsername, etPassword, etConfirmPassword, email, contact, username, password, confirmPassword);
+            if (!valid) {
+                Toast.makeText(this, "Please fix the highlighted fields", Toast.LENGTH_SHORT).show();
+                scrollToFirstError(etFirstName, etSurname, etAge, etBirthDate, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
                 return;
             }
 
-            int age;
-            try {
-                age = ageStr.isEmpty() ? 0 : Integer.parseInt(ageStr);
-            } catch (NumberFormatException e) {
-                Toast.makeText(this, "Please enter a valid age", Toast.LENGTH_SHORT).show();
-                return;
-            }
+            int age = Integer.parseInt(ageStr);
 
             btnSubmit.setEnabled(false);
             Toast.makeText(this, "Registering Customer...", Toast.LENGTH_SHORT).show();
@@ -623,10 +641,118 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MainActivity", "Register Customer Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, isDuplicateKeyError(e) ? "That username or email is already registered. Try another one." : "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
             }
         });
+    }
+
+    // Shows a red message under a field (the hidden TextView that follows it in the form) and a red outline.
+    private void setFieldError(EditText field, String message) {
+        if (field == null) return;
+        field.setActivated(message != null);
+        ViewGroup parent = (ViewGroup) field.getParent();
+        View next = parent.getChildAt(parent.indexOfChild(field) + 1);
+        if (next instanceof TextView && "fieldError".equals(next.getTag())) {
+            ((TextView) next).setText(message != null ? message : "");
+            next.setVisibility(message != null ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    // Removes a field's error as soon as the user starts fixing it.
+    private void clearErrorsWhileTyping(EditText... fields) {
+        for (EditText field : fields) {
+            if (field == null) continue;
+            field.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (field.isActivated()) setFieldError(field, null);
+                }
+            });
+        }
+    }
+
+    // Scrolls the form so the first field with an error (and its message) is on screen.
+    private void scrollToFirstError(EditText... fields) {
+        for (EditText field : fields) {
+            if (field != null && field.isActivated()) {
+                field.post(() -> field.requestRectangleOnScreen(new Rect(0, 0, field.getWidth(), field.getHeight() + 80), false));
+                return;
+            }
+        }
+    }
+
+    private boolean checkRequired(EditText field, String value, String message) {
+        setFieldError(field, value.isEmpty() ? message : null);
+        return !value.isEmpty();
+    }
+
+    private boolean checkAge(EditText field, String ageStr) {
+        String error = null;
+        if (ageStr.isEmpty()) {
+            error = "Enter your age";
+        } else {
+            try {
+                int age = Integer.parseInt(ageStr);
+                if (age < 1 || age > 120) error = "Enter a valid age";
+            } catch (NumberFormatException e) {
+                error = "Enter a valid age";
+            }
+        }
+        setFieldError(field, error);
+        return error == null;
+    }
+
+    // Email, contact number, username and password (with confirmation): same rules for customers and pharmacies.
+    private boolean checkContactAndAccount(EditText etEmail, EditText etContact, EditText etUsername, EditText etPassword, EditText etConfirmPassword,
+                                           String email, String contact, String username, String password, String confirmPassword) {
+        boolean ok = true;
+
+        String emailError = null;
+        if (email.isEmpty()) emailError = "Enter your email";
+        else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) emailError = "Enter a valid email address";
+        setFieldError(etEmail, emailError);
+        ok &= emailError == null;
+
+        int digits = contact.replaceAll("[^0-9]", "").length();
+        String contactError = null;
+        if (contact.isEmpty()) contactError = "Enter your contact number";
+        else if (!contact.matches("[0-9+\\-\\s()]+") || digits < 7 || digits > 15) contactError = "Enter a valid phone number";
+        setFieldError(etContact, contactError);
+        ok &= contactError == null;
+
+        String usernameError = null;
+        if (username.isEmpty()) usernameError = "Choose a username";
+        else if (username.length() < 4) usernameError = "Use at least 4 characters";
+        else if (username.matches(".*\\s.*")) usernameError = "Spaces aren't allowed";
+        setFieldError(etUsername, usernameError);
+        ok &= usernameError == null;
+
+        String passwordError = null;
+        if (password.isEmpty()) passwordError = "Choose a password";
+        else if (password.length() < 6) passwordError = "Use at least 6 characters";
+        setFieldError(etPassword, passwordError);
+        ok &= passwordError == null;
+
+        String confirmError = null;
+        if (confirmPassword.isEmpty()) confirmError = "Re-enter your password";
+        else if (!confirmPassword.equals(password)) confirmError = "Passwords do not match";
+        setFieldError(etConfirmPassword, confirmError);
+        ok &= confirmError == null;
+
+        return ok;
+    }
+
+    // SQL Server error 2627/2601 = a UNIQUE constraint was hit (username or email already exists).
+    private boolean isDuplicateKeyError(SQLException e) {
+        return e.getErrorCode() == 2627 || e.getErrorCode() == 2601
+                || (e.getMessage() != null && e.getMessage().toLowerCase(Locale.US).contains("duplicate key"));
     }
 
     @Override
