@@ -347,6 +347,21 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         "END";
                 stmt.executeUpdate(alterColQuery);
 
+                // Some databases were set up from the README script, which never added these two
+                // columns under these names (it used IsAvailable/PriceInfo instead). The app reads
+                // and writes AvailabilityStatus/Price everywhere, so add them if they're missing.
+                String alterAvailabilityQuery = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PharmacyReplies' AND COLUMN_NAME = 'AvailabilityStatus') " +
+                        "BEGIN " +
+                        "ALTER TABLE dbo.PharmacyReplies ADD AvailabilityStatus NVARCHAR(50) NULL " +
+                        "END";
+                stmt.executeUpdate(alterAvailabilityQuery);
+
+                String alterPriceQuery = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PharmacyReplies' AND COLUMN_NAME = 'Price') " +
+                        "BEGIN " +
+                        "ALTER TABLE dbo.PharmacyReplies ADD Price NVARCHAR(50) NULL " +
+                        "END";
+                stmt.executeUpdate(alterPriceQuery);
+
                 con.close();
             } catch (SQLException e) {
                 Log.e("ActivityInquiryThread", "Error checking PharmacyReplies table columns: " + e.getMessage());
