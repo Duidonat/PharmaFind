@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         EditText etUsername = dialogView.findViewById(R.id.etUsername);
         EditText etPassword = dialogView.findViewById(R.id.etPassword);
         android.widget.CheckBox cbShowPassword = dialogView.findViewById(R.id.cbShowPassword);
+        android.widget.CheckBox cbRememberMe = dialogView.findViewById(R.id.cbRememberMe);
         MaterialButton btnLoginSubmit = dialogView.findViewById(R.id.btnLoginSubmit);
 
         if (cbShowPassword != null && etPassword != null) {
@@ -110,9 +111,11 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
 
+                boolean rememberMe = cbRememberMe != null && cbRememberMe.isChecked();
+
                 btnLoginSubmit.setEnabled(false);
                 Toast.makeText(this, "Logging in...", Toast.LENGTH_SHORT).show();
-                performLogin(username, password, bottomSheetDialog, btnLoginSubmit);
+                performLogin(username, password, rememberMe, bottomSheetDialog, btnLoginSubmit);
             });
         }
 
@@ -124,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
-    private void performLogin(String username, String password, BottomSheetDialog dialog, MaterialButton btnSubmit) {
+    private void performLogin(String username, String password, boolean rememberMe, BottomSheetDialog dialog, MaterialButton btnSubmit) {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) {
@@ -154,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
                     if (district == null) district = "";
 
                     sessionManager.createCustomerSession(id, username, name, city, barangay, district);
+                    sessionManager.setRememberMe(rememberMe);
 
                     con.close();
 
@@ -187,6 +191,7 @@ public class MainActivity extends AppCompatActivity {
                     if (status == null) status = "pending";
 
                     sessionManager.createPharmacySession(id, username, name, city, barangay, district, status);
+                    sessionManager.setRememberMe(rememberMe);
 
                     con.close();
 
