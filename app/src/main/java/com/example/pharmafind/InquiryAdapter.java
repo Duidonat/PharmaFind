@@ -1,8 +1,5 @@
 package com.example.pharmafind;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,27 +65,10 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
             holder.tvReplyCount.setText("💬 " + replies + " Pharmacy Responses");
         }
 
-        // Display base64 decoded image if present
-        if (item.getImageUrl() != null && !item.getImageUrl().trim().isEmpty()) {
-            try {
-                String imageStr = item.getImageUrl();
-                if (imageStr.contains(",")) {
-                    imageStr = imageStr.split(",")[1];
-                }
-                byte[] decodedBytes = Base64.decode(imageStr, Base64.DEFAULT);
-                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                if (bitmap != null) {
-                    holder.ivInquiryImage.setImageBitmap(bitmap);
-                    holder.ivInquiryImage.setVisibility(View.VISIBLE);
-                } else {
-                    holder.ivInquiryImage.setVisibility(View.GONE);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                holder.ivInquiryImage.setVisibility(View.GONE);
-            }
-        } else {
-            holder.ivInquiryImage.setVisibility(View.GONE);
+        // Lists only show that a photo exists. The photo itself is loaded on the request screen,
+        // and only for the requester and pharmacies (see ActivityInquiryThread).
+        if (holder.tvPhotoAttached != null) {
+            holder.tvPhotoAttached.setVisibility(item.hasImage() ? View.VISIBLE : View.GONE);
         }
 
         holder.itemView.setOnClickListener(v -> {
@@ -112,8 +92,8 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
     }
 
     static class InquiryViewHolder extends RecyclerView.ViewHolder {
-        TextView tvCustomerName, tvLocationAndDate, tvStatusBadge, tvMedicineName, tvDescription, tvReplyCount;
-        ImageView ivUserAvatar, ivInquiryImage;
+        TextView tvCustomerName, tvLocationAndDate, tvStatusBadge, tvMedicineName, tvDescription, tvReplyCount, tvPhotoAttached;
+        ImageView ivUserAvatar;
         MaterialButton btnViewThread;
 
         public InquiryViewHolder(@NonNull View itemView) {
@@ -125,7 +105,7 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
             tvDescription = itemView.findViewById(R.id.tvDescription);
             tvReplyCount = itemView.findViewById(R.id.tvReplyCount);
             ivUserAvatar = itemView.findViewById(R.id.ivUserAvatar);
-            ivInquiryImage = itemView.findViewById(R.id.ivInquiryImage);
+            tvPhotoAttached = itemView.findViewById(R.id.tvPhotoAttached);
             btnViewThread = itemView.findViewById(R.id.btnViewThread);
         }
     }

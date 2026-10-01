@@ -41,7 +41,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
     private UserSessionManager sessionManager;
     private int inquiryId = -1;
 
-    private TextView tvCustomerName, tvLocationAndDate, tvStatusBadge, tvMedicineName, tvDescription, tvRepliesHeader, tvRepliesEmptyState;
+    private TextView tvCustomerName, tvLocationAndDate, tvStatusBadge, tvMedicineName, tvDescription, tvRepliesHeader, tvRepliesEmptyState, tvPhotoRestricted;
     private ImageView ivInquiryImage;
     private ProgressBar pbRepliesLoading;
     private RecyclerView rvReplies;
@@ -116,6 +116,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
         tvRepliesEmptyState = findViewById(R.id.tvRepliesEmptyState);
         pbRepliesLoading = findViewById(R.id.pbRepliesLoading);
         ivInquiryImage = findViewById(R.id.ivInquiryImage);
+        tvPhotoRestricted = findViewById(R.id.tvPhotoRestricted);
 
         rvReplies = findViewById(R.id.rvReplies);
         rvReplies.setLayoutManager(new LinearLayoutManager(this));
@@ -197,7 +198,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
             if (con == null) return;
 
             try {
-                String query = "SELECT CustomerID, CustomerName, MedicineName, Description, ImageUrl, City, Barangay, District, Status, CONVERT(VARCHAR, CreatedAt, 120) AS CreatedAtStr FROM dbo.Inquiries WHERE InquiryID = ?";
+                String query = "SELECT CustomerID, CustomerName, MedicineName, Description, CASE WHEN ImageUrl IS NOT NULL AND ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, City, Barangay, District, Status, CONVERT(VARCHAR, CreatedAt, 120) AS CreatedAtStr FROM dbo.Inquiries WHERE InquiryID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, inquiryId);
                 ResultSet rs = stmt.executeQuery();
@@ -207,20 +208,33 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
                     String description = rs.getString("Description");
-                    String imageUrl = rs.getString("ImageUrl");
+                    boolean hasImage = rs.getInt("HasImage") == 1;
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String status = rs.getString("Status");
                     String createdAt = rs.getString("CreatedAtStr");
 
+                    // The attached photo (often a prescription) is only for the customer who posted
+                    // this inquiry and for pharmacies. It's only fetched for them, so it never reaches
+                    // anyone else's phone.
+                    boolean isOwner = "customer".equalsIgnoreCase(sessionManager.getRole())
+                            && sessionManager.getUserId() == customerId;
+                    boolean canViewPhoto = isOwner || "pharmacy".equalsIgnoreCase(sessionManager.getRole());
+
                     Bitmap decodedBitmap = null;
-                    if (imageUrl != null && !imageUrl.trim().isEmpty()) {
-                        try {
-                            String imageStr = imageUrl;
-                            if (imageStr.contains(",")) imageStr = imageStr.split(",")[1];
-                            byte[] decodedBytes = Base64.decode(imageStr, Base64.DEFAULT);
-                            decodedBitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                        } catch (Exception ignored) {}
+                    if (hasImage && canViewPhoto) {
+                        PreparedStatement imageStmt = con.prepareStatement("SELECT ImageUrl FROM dbo.Inquiries WHERE InquiryID = ?");
+                        imageStmt.setInt(1, inquiryId);
+                        ResultSet imageRs = imageStmt.executeQuery();
+                        if (imageRs.next()) {
+                            String imageUrl = imageRs.getString("ImageUrl");
+                            try {
+                                String imageStr = imageUrl;
+                                if (imageStr.contains(",")) imageStr = imageStr.split(",")[1];
+                                byte[] decodedBytes = Base64.decode(imageStr, Base64.DEFAULT);
+                                decodedBitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                            } catch (Exception ignored) {}
+                        }
                     }
 
                     Bitmap finalBitmap = decodedBitmap;
@@ -232,8 +246,6 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         tvStatusBadge.setText(status != null ? status.toUpperCase() : "OPEN");
 
                         // Only the customer who posted this inquiry may select a pharmacy's offer.
-                        boolean isOwner = "customer".equalsIgnoreCase(sessionManager.getRole())
-                                && sessionManager.getUserId() == customerId;
                         replyAdapter.setCanSelectPharmacy(isOwner);
 
                         if (finalBitmap != null) {
@@ -241,6 +253,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
                             ivInquiryImage.setVisibility(View.VISIBLE);
                         } else {
                             ivInquiryImage.setVisibility(View.GONE);
+                        }
+                        if (tvPhotoRestricted != null) {
+                            tvPhotoRestricted.setVisibility(hasImage && !canViewPhoto ? View.VISIBLE : View.GONE);
                         }
                     });
                 }

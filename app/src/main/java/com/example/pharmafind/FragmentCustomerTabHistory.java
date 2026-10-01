@@ -84,7 +84,7 @@ public class FragmentCustomerTabHistory extends Fragment {
 
             try {
                 List<InquiryModel> tempInquiries = new ArrayList<>();
-                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
                         "FROM dbo.Inquiries i " +
                         "WHERE i.CustomerID = ? " +
@@ -100,7 +100,7 @@ public class FragmentCustomerTabHistory extends Fragment {
                     String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
                     String description = rs.getString("Description");
-                    String imageUrl = rs.getString("ImageUrl");
+                    boolean hasImage = rs.getInt("HasImage") == 1;
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String district = rs.getString("District");
@@ -109,7 +109,7 @@ public class FragmentCustomerTabHistory extends Fragment {
                     int replyCount = rs.getInt("ReplyCount");
 
                     tempInquiries.add(new InquiryModel(
-                            inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
+                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount
                     ));
                 }
 

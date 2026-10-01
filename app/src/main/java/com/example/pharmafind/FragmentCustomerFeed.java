@@ -228,6 +228,9 @@ public class FragmentCustomerFeed extends Fragment {
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Barangay') ALTER TABLE dbo.Inquiries ADD Barangay NVARCHAR(100) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'District') ALTER TABLE dbo.Inquiries ADD District NVARCHAR(100) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'ImageUrl') ALTER TABLE dbo.Inquiries ADD ImageUrl NVARCHAR(MAX) NULL;",
+                    // The README's setup script created ImageUrl as NVARCHAR(255), far too small for a
+                    // photo stored as Base64 text - widen it so posting a request with a photo works.
+                    "IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'ImageUrl' AND CHARACTER_MAXIMUM_LENGTH <> -1) ALTER TABLE dbo.Inquiries ALTER COLUMN ImageUrl NVARCHAR(MAX) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Description') ALTER TABLE dbo.Inquiries ADD Description NVARCHAR(MAX) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Status') ALTER TABLE dbo.Inquiries ADD Status NVARCHAR(50) DEFAULT 'open';"
             };
@@ -292,7 +295,7 @@ public class FragmentCustomerFeed extends Fragment {
 
                 // Same area-matching approach as FragmentPharmacyFeed, so "your area" means the
                 // same thing on both sides of the app.
-                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
                         "FROM dbo.Inquiries i " +
                         "WHERE LOWER(i.Barangay) LIKE '%' + LOWER(?) + '%' " +
@@ -317,7 +320,7 @@ public class FragmentCustomerFeed extends Fragment {
                     String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
                     String description = rs.getString("Description");
-                    String imageUrl = rs.getString("ImageUrl");
+                    boolean hasImage = rs.getInt("HasImage") == 1;
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String district = rs.getString("District");
@@ -326,7 +329,7 @@ public class FragmentCustomerFeed extends Fragment {
                     int replyCount = rs.getInt("ReplyCount");
 
                     tempInquiries.add(new InquiryModel(
-                            inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
+                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount
                     ));
                 }
 

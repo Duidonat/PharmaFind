@@ -92,15 +92,17 @@
             android:textColor="@color/black"
             android:textSize="14sp" />
 
-        <!-- Optional Image Attachment -->
-        <ImageView
-            android:id="@+id/ivInquiryImage"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="12dp"
-            android:scaleType="centerCrop"
-            android:visibility="gone"
-            android:contentDescription="Prescription or packaging photo" />
+        <!-- Photo Attachment Indicator (the photo itself only shows on the request screen,
+             and only to the requester and pharmacies) -->
+        <TextView
+            android:id="@+id/tvPhotoAttached"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="📎 Photo attached"
+            android:textColor="@color/text_gray"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
         <View
             android:layout_width="match_parent"

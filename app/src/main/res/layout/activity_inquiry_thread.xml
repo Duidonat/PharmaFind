@@ -152,6 +152,17 @@
                         android:scaleType="centerCrop"
                         android:visibility="gone" />
 
+                    <!-- Shown instead of the photo to anyone who isn't the requester or a pharmacy -->
+                    <TextView
+                        android:id="@+id/tvPhotoRestricted"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="🔒 A photo is attached. Only the requester and pharmacies can view it."
+                        android:textColor="@color/text_gray"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
