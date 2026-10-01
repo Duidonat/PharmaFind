@@ -287,12 +287,28 @@ public class FragmentCustomerFeed extends Fragment {
 
             try {
                 List<InquiryModel> tempInquiries = new ArrayList<>();
+                String customerBarangay = sessionManager.getBarangay();
+                String customerCity = sessionManager.getCity();
+
+                // Same area-matching approach as FragmentPharmacyFeed, so "your area" means the
+                // same thing on both sides of the app.
                 String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
                         "FROM dbo.Inquiries i " +
+                        "WHERE LOWER(i.Barangay) LIKE '%' + LOWER(?) + '%' " +
+                        "   OR LOWER(i.City) LIKE '%' + LOWER(?) + '%' " +
+                        "   OR LOWER(?) LIKE '%' + LOWER(i.Barangay) + '%' " +
+                        "   OR i.Barangay IS NULL OR i.Barangay = '' OR ? = '' " +
                         "ORDER BY i.CreatedAt DESC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
+                String bg = customerBarangay != null ? customerBarangay.trim() : "";
+                String ct = customerCity != null ? customerCity.trim() : "";
+                stmt.setString(1, bg);
+                stmt.setString(2, ct);
+                stmt.setString(3, bg);
+                stmt.setString(4, bg);
+
                 ResultSet rs = stmt.executeQuery();
 
                 while (rs.next()) {
