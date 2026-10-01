@@ -222,6 +222,9 @@ public class FragmentPharmacyFeed extends Fragment {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("FragmentPharmacyFeed", "Error loading local inquiries: " + e.getMessage());
                 mainHandler.post(() -> showFeedError("Couldn't load requests. Please try again."));
             }

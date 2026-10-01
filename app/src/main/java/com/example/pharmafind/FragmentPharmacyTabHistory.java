@@ -130,6 +130,9 @@ public class FragmentPharmacyTabHistory extends Fragment {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyTabHistory", "Load Replied Inquiries Error: " + e.getMessage());
                 mainHandler.post(() -> showHistoryError("Couldn't load your responses. Please try again."));
             }

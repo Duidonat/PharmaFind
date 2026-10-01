@@ -247,6 +247,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error loading inquiry details: " + e.getMessage());
             }
         });
@@ -308,6 +311,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error loading pharmacy replies: " + e.getMessage());
                 mainHandler.post(() -> showRepliesError("Couldn't load pharmacy responses. Please try again."));
             }
@@ -347,6 +353,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error fulfilling inquiry: " + e.getMessage());
             }
         });
@@ -367,6 +376,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error checking Inquiries table columns: " + e.getMessage());
             }
         });
@@ -417,6 +429,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error checking PharmacyReplies table columns: " + e.getMessage());
             }
         });

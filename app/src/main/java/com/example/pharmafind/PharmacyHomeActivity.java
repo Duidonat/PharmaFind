@@ -81,6 +81,9 @@ public class PharmacyHomeActivity extends AppCompatActivity {
                 stmt.executeUpdate(query);
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyHomeActivity", "Error adding columns: " + e.getMessage());
             }
         });

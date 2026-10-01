@@ -221,6 +221,9 @@ public class MainActivity extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("MainActivity", "Login Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
@@ -342,6 +345,9 @@ public class MainActivity extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("MainActivity", "Reset Password Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
@@ -470,6 +476,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("MainActivity", "Register Pharmacy Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
@@ -600,6 +609,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("MainActivity", "Register Customer Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);

@@ -111,6 +111,9 @@ public class FragmentCustomerTabAbout extends Fragment {
                 stmt.executeUpdate(query);
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("CustomerTabAbout", "Error altering Customers table: " + e.getMessage());
             }
         });
@@ -153,6 +156,9 @@ public class FragmentCustomerTabAbout extends Fragment {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("CustomerTabAbout", "Error loading details: " + e.getMessage());
             }
         });
@@ -301,6 +307,9 @@ public class FragmentCustomerTabAbout extends Fragment {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("CustomerTabAbout", "Error saving profile: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSave != null) btnSave.setEnabled(true);

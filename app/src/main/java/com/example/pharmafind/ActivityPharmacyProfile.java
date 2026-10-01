@@ -183,6 +183,9 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityPharmacyProfile", "Error loading pharmacy: " + e.getMessage());
             }
         });

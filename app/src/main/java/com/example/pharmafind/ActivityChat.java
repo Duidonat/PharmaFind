@@ -105,6 +105,9 @@ public class ActivityChat extends AppCompatActivity {
                 stmt.executeUpdate(query);
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityChat", "Error creating Messages table: " + e.getMessage());
             }
         });
@@ -153,6 +156,9 @@ public class ActivityChat extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityChat", "Error loading messages: " + e.getMessage());
             }
         });
@@ -187,6 +193,9 @@ public class ActivityChat extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityChat", "Error sending message: " + e.getMessage());
             }
         });

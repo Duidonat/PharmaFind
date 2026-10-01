@@ -151,6 +151,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyTabAbout", "Error loading details: " + e.getMessage());
             }
         });
@@ -336,6 +339,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyTabAbout", "Error loading profile details: " + e.getMessage());
             }
         });
@@ -400,6 +406,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyTabAbout", "Error saving profile: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSave != null) btnSave.setEnabled(true);

@@ -129,6 +129,9 @@ public class FragmentCustomerTabHistory extends Fragment {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("CustomerTabHistory", "Load My Inquiries Error: " + e.getMessage());
                 mainHandler.post(() -> showHistoryError("Couldn't load your requests. Please try again."));
             }

@@ -340,6 +340,9 @@ public class FragmentCustomerFeed extends Fragment {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("FragmentCustomerFeed", "Load Inquiries Error: " + e.getMessage());
                 mainHandler.post(() -> showFeedError("Couldn't load requests. Please try again."));
             }
@@ -475,6 +478,9 @@ public class FragmentCustomerFeed extends Fragment {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("FragmentCustomerFeed", "Post Inquiry Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnPost != null) btnPost.setEnabled(true);
