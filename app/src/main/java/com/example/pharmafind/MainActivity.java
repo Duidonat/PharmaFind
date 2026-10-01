@@ -57,9 +57,12 @@ public class MainActivity extends AppCompatActivity {
 
         View mainView = findViewById(R.id.main);
         if (mainView != null) {
+            // Keep the layout's own padding (24dp) and add the status/navigation bar space on top of it.
+            // Replacing it outright left the buttons touching the screen edges.
+            int basePadding = mainView.getPaddingLeft();
             ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                v.setPadding(basePadding + systemBars.left, basePadding + systemBars.top, basePadding + systemBars.right, basePadding + systemBars.bottom);
                 return insets;
             });
         }

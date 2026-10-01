@@ -3,8 +3,12 @@ package com.example.pharmafind;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
@@ -32,6 +36,22 @@ public class PharmacyHomeActivity extends AppCompatActivity {
         TextView tvPharmacyLocation = findViewById(R.id.tvPharmacyLocation);
         MaterialButton btnLogout = findViewById(R.id.btnPharmacyLogout);
         BottomNavigationView bottomNav = findViewById(R.id.pharmacyBottomNavigation);
+
+        // Push the header content below the status bar (Android 15+ draws the app behind it).
+        View headerContent = findViewById(R.id.headerContentPharmacy);
+        if (headerContent != null) {
+            int baseTopPadding = headerContent.getPaddingTop();
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+                Insets statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+                headerContent.setPadding(
+                    headerContent.getPaddingLeft(),
+                    baseTopPadding + statusBars.top,
+                    headerContent.getPaddingRight(),
+                    headerContent.getPaddingBottom()
+                );
+                return insets;
+            });
+        }
 
         tvPharmacyWelcome.setText("Welcome, " + sessionManager.getFullName());
         tvPharmacyLocation.setText("📍 Barangay " + sessionManager.getBarangay() + ", " + sessionManager.getCity());

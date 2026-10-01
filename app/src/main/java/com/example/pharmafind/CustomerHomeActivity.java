@@ -2,8 +2,12 @@ package com.example.pharmafind;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
@@ -24,6 +28,22 @@ public class CustomerHomeActivity extends AppCompatActivity {
         tvUserLocation = findViewById(R.id.tvUserLocation);
         MaterialButton btnLogout = findViewById(R.id.btnLogout);
         BottomNavigationView bottomNav = findViewById(R.id.bottomNavigation);
+
+        // Push the header content below the status bar (Android 15+ draws the app behind it).
+        View headerContent = findViewById(R.id.headerContent);
+        if (headerContent != null) {
+            int baseTopPadding = headerContent.getPaddingTop();
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+                Insets statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+                headerContent.setPadding(
+                    headerContent.getPaddingLeft(),
+                    baseTopPadding + statusBars.top,
+                    headerContent.getPaddingRight(),
+                    headerContent.getPaddingBottom()
+                );
+                return insets;
+            });
+        }
 
         // Display logged-in user details
         tvWelcomeUser.setText("Welcome, " + session.getFullName() + "!");
