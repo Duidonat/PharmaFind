@@ -423,4 +423,21 @@ public class FragmentPharmacyTabAbout extends Fragment {
         super.onDestroy();
         executor.shutdown();
     }
+
+    // After the user taps Allow on the system prompt, carry on with what they asked for instead of
+    // making them tap the button a second time.
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) return;
+        boolean granted = false;
+        for (int result : grantResults) {
+            if (result == PackageManager.PERMISSION_GRANTED) granted = true;
+        }
+        if (granted) {
+            fetchCurrentLocationPin();
+        } else if (getContext() != null) {
+            Toast.makeText(getContext(), "Location permission is needed to detect your GPS pin.", Toast.LENGTH_SHORT).show();
+        }
+    }
 }
