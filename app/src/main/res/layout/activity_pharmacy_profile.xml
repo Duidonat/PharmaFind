@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light">
@@ -67,7 +68,7 @@
                     android:id="@+id/tvPharmacyNameTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pharmacy Name"
+                    tools:text="Pharmacy Name"
                     android:textColor="@color/black"
                     android:textSize="22sp"
                     android:textStyle="bold" />
@@ -95,7 +96,7 @@
                 android:drawablePadding="6dp"
                 android:drawableStart="@drawable/ic_location_on_16"
                 android:drawableTint="@color/text_gray"
-                android:text="Barangay Marawoy, Lipa City"
+                tools:text="Barangay Marawoy, Lipa City"
                 android:textColor="@color/text_gray"
                 android:textSize="14sp" />
 
