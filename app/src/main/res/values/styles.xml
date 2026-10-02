@@ -66,4 +66,12 @@
         <item name="android:textSize">13sp</item>
         <item name="android:textAllCaps">false</item>
     </style>
+
+    <!-- Screen-to-screen motion, applied to every activity through the theme (see themes.xml). -->
+    <style name="Animation.PharmaFind.Activity" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/activity_open_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/activity_open_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/activity_close_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/activity_close_exit</item>
+    </style>
 </resources>

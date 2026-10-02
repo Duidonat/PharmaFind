@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Going back: the closing screen slides out to the right and fades. -->
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@android:interpolator/accelerate_quad">
+    <translate
+        android:duration="300"
+        android:fromXDelta="0"
+        android:toXDelta="8%p" />
+    <alpha
+        android:duration="120"
+        android:fromAlpha="1"
+        android:toAlpha="0" />
+</set>

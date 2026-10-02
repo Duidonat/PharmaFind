@@ -33,5 +33,7 @@
         <!-- Keep white cards and the bottom menu pure white. Material 3 otherwise tints raised
              surfaces that match colorSurface, which turned them grey-teal. -->
         <item name="elevationOverlayEnabled">false</item>
+        <!-- Soft slide-and-fade between screens -->
+        <item name="android:windowAnimationStyle">@style/Animation.PharmaFind.Activity</item>
     </style>
 </resources>
