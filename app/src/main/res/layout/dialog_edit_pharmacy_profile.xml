@@ -207,10 +207,77 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/edittext_background"
                 android:hint="Phone / Mobile number"
                 android:inputType="phone"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <!-- Store address (same fields the pharmacy filled in when registering) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="City"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etCityEdit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/edittext_background"
+                android:hint="City"
+                android:inputType="text"
+                android:maxLength="100"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Barangay"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etBarangayEdit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/edittext_background"
+                android:hint="Barangay"
+                android:inputType="text"
+                android:maxLength="100"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="District / Purok (optional)"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etDistrictEdit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/edittext_background"
+                android:hint="District or Purok"
+                android:inputType="text"
+                android:maxLength="100"
                 android:paddingHorizontal="12dp"
                 android:textColor="@color/black"
                 android:textSize="14sp" />

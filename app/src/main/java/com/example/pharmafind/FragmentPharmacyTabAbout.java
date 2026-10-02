@@ -170,6 +170,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
         EditText etBio = dialogView.findViewById(R.id.etBioEdit);
         EditText etHours = dialogView.findViewById(R.id.etHoursEdit);
         EditText etContact = dialogView.findViewById(R.id.etContactEdit);
+        EditText etCity = dialogView.findViewById(R.id.etCityEdit);
+        EditText etBarangay = dialogView.findViewById(R.id.etBarangayEdit);
+        EditText etDistrict = dialogView.findViewById(R.id.etDistrictEdit);
         dialogTvPinCoords = dialogView.findViewById(R.id.tvPinCoordinates);
         dialogEtLat = dialogView.findViewById(R.id.etLatEdit);
         dialogEtLng = dialogView.findViewById(R.id.etLngEdit);
@@ -249,7 +252,7 @@ public class FragmentPharmacyTabAbout extends Fragment {
 
         if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
 
-        loadCurrentProfileDetailsIntoDialog(etName, etBio, etHours, etContact, dialogEtLat, dialogEtLng, dialogTvPinCoords);
+        loadCurrentProfileDetailsIntoDialog(etName, etBio, etHours, etContact, etCity, etBarangay, etDistrict, dialogEtLat, dialogEtLng, dialogTvPinCoords);
 
         if (btnUseGps != null) {
             btnUseGps.setOnClickListener(v -> fetchCurrentLocationPin());
@@ -276,6 +279,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
                 String bio = etBio.getText().toString().trim();
                 String hours = etHours.getText().toString().trim();
                 String contact = etContact.getText().toString().trim();
+                String city = etCity.getText().toString().trim();
+                String barangay = etBarangay.getText().toString().trim();
+                String district = etDistrict.getText().toString().trim();
                 String latStr = dialogEtLat.getText().toString().trim();
                 String lngStr = dialogEtLng.getText().toString().trim();
 
@@ -289,8 +295,13 @@ public class FragmentPharmacyTabAbout extends Fragment {
                     return;
                 }
 
+                if (name.isEmpty() || city.isEmpty() || barangay.isEmpty()) {
+                    Toast.makeText(getContext(), "Store name, city and barangay are required", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 btnSave.setEnabled(false);
-                savePharmacyProfileToDB(name, bio, hours, contact, lat, lng, dialog, btnSave);
+                savePharmacyProfileToDB(name, bio, hours, contact, city, barangay, district, lat, lng, dialog, btnSave);
             });
         }
 
@@ -302,19 +313,22 @@ public class FragmentPharmacyTabAbout extends Fragment {
         dialog.show();
     }
 
-    private void loadCurrentProfileDetailsIntoDialog(EditText etName, EditText etBio, EditText etHours, EditText etContact, EditText etLat, EditText etLng, TextView tvPinCoords) {
+    private void loadCurrentProfileDetailsIntoDialog(EditText etName, EditText etBio, EditText etHours, EditText etContact, EditText etCity, EditText etBarangay, EditText etDistrict, EditText etLat, EditText etLng, TextView tvPinCoords) {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) return;
 
             try {
-                String query = "SELECT PharmacyName, Contact, Bio, OperatingHours, Latitude, Longitude FROM dbo.Pharmacies WHERE PharmacyID = ?";
+                String query = "SELECT PharmacyName, City, Barangay, District, Contact, Bio, OperatingHours, Latitude, Longitude FROM dbo.Pharmacies WHERE PharmacyID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, sessionManager.getUserId());
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs.next()) {
                     String name = rs.getString("PharmacyName");
+                    String city = rs.getString("City");
+                    String barangay = rs.getString("Barangay");
+                    String district = rs.getString("District");
                     String contact = rs.getString("Contact");
                     String bio = rs.getString("Bio");
                     String hours = rs.getString("OperatingHours");
@@ -323,6 +337,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
 
                     mainHandler.post(() -> {
                         if (etName != null) etName.setText(name != null ? name : "");
+                        if (etCity != null) etCity.setText(city != null ? city : "");
+                        if (etBarangay != null) etBarangay.setText(barangay != null ? barangay : "");
+                        if (etDistrict != null) etDistrict.setText(district != null ? district : "");
                         if (etContact != null) etContact.setText(contact != null ? contact : "");
                         if (etBio != null) etBio.setText(bio != null ? bio : "");
                         if (etHours != null) etHours.setText(hours != null ? hours : "");
@@ -368,7 +385,7 @@ public class FragmentPharmacyTabAbout extends Fragment {
         });
     }
 
-    private void savePharmacyProfileToDB(String name, String bio, String hours, String contact, double lat, double lng, BottomSheetDialog dialog, MaterialButton btnSave) {
+    private void savePharmacyProfileToDB(String name, String bio, String hours, String contact, String city, String barangay, String district, double lat, double lng, BottomSheetDialog dialog, MaterialButton btnSave) {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) {
@@ -380,15 +397,18 @@ public class FragmentPharmacyTabAbout extends Fragment {
             }
 
             try {
-                String query = "UPDATE dbo.Pharmacies SET PharmacyName = ?, Bio = ?, OperatingHours = ?, Contact = ?, Latitude = ?, Longitude = ? WHERE PharmacyID = ?";
+                String query = "UPDATE dbo.Pharmacies SET PharmacyName = ?, Bio = ?, OperatingHours = ?, Contact = ?, City = ?, Barangay = ?, District = ?, Latitude = ?, Longitude = ? WHERE PharmacyID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setString(1, name);
                 stmt.setString(2, bio);
                 stmt.setString(3, hours);
                 stmt.setString(4, contact);
-                stmt.setDouble(5, lat);
-                stmt.setDouble(6, lng);
-                stmt.setInt(7, sessionManager.getUserId());
+                stmt.setString(5, city);
+                stmt.setString(6, barangay);
+                stmt.setString(7, district);
+                stmt.setDouble(8, lat);
+                stmt.setDouble(9, lng);
+                stmt.setInt(10, sessionManager.getUserId());
 
                 int rows = stmt.executeUpdate();
                 con.close();
@@ -396,7 +416,7 @@ public class FragmentPharmacyTabAbout extends Fragment {
                 mainHandler.post(() -> {
                     if (btnSave != null) btnSave.setEnabled(true);
                     if (rows > 0) {
-                        sessionManager.createPharmacySession(sessionManager.getUserId(), sessionManager.getUsername(), name, sessionManager.getCity(), sessionManager.getBarangay(), sessionManager.getDistrict(), sessionManager.getStatus());
+                        sessionManager.createPharmacySession(sessionManager.getUserId(), sessionManager.getUsername(), name, city, barangay, district, sessionManager.getStatus());
                         Toast.makeText(getContext(), "Profile & Location Pin Updated!", Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                         loadPharmacyDetails();
