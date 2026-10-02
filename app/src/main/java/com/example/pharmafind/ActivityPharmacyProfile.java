@@ -47,6 +47,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
         pharmacyId = getIntent().getIntExtra("pharmacy_id", -1);
 
         if (pharmacyId == -1) {
+            // Toast, not UiMessage: this screen closes right after, which would take a Snackbar with it.
             Toast.makeText(this, "Pharmacy Not Found", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -83,7 +84,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
                 Intent callIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + contactPhone));
                 startActivity(callIntent);
             } else {
-                Toast.makeText(this, "No phone number available", Toast.LENGTH_SHORT).show();
+                UiMessage.show(this, "No phone number available");
             }
         });
 
@@ -114,7 +115,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
             }
         } catch (Exception e) {
             Log.e("ActivityPharmacyProfile", "Map Error: " + e.getMessage());
-            Toast.makeText(this, "Could not launch Google Maps", Toast.LENGTH_SHORT).show();
+            UiMessage.show(this, "Could not launch Google Maps");
         }
     }
 

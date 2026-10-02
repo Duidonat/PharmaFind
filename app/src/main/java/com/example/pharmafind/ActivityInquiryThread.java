@@ -99,6 +99,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
         inquiryId = getIntent().getIntExtra("inquiry_id", -1);
         if (inquiryId == -1) {
+            // Toast, not UiMessage: this screen closes right after, which would take a Snackbar with it.
             Toast.makeText(this, "Invalid request", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -135,7 +136,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + contact));
                     startActivity(intent);
                 } else {
-                    Toast.makeText(ActivityInquiryThread.this, "No phone contact available", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(ActivityInquiryThread.this, "No phone contact available");
                 }
             }
 
@@ -359,7 +360,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
                 mainHandler.post(() -> {
                     if (rows > 0) {
-                        Toast.makeText(ActivityInquiryThread.this, "Pharmacy Selected! Opening Store Location...", Toast.LENGTH_LONG).show();
+                        UiMessage.showLong(ActivityInquiryThread.this, "Pharmacy Selected! Opening Store Location...");
                         if (tvStatusBadge != null) {
                             tvStatusBadge.setText("FULFILLED");
                             InquiryAdapter.styleStatusBadge(tvStatusBadge, "fulfilled");
@@ -473,7 +474,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
         final String availabilityStatus = selectedAvailability;
 
         if (price.isEmpty() && note.isEmpty()) {
-            Toast.makeText(this, "Please enter price or note", Toast.LENGTH_SHORT).show();
+            UiMessage.show(this, "Please enter price or note");
             return;
         }
 
@@ -484,7 +485,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
             if (con == null) {
                 mainHandler.post(() -> {
                     btnSubmitPharmacyReply.setEnabled(true);
-                    Toast.makeText(ActivityInquiryThread.this, "Database connection error", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(ActivityInquiryThread.this, "Database connection error");
                 });
                 return;
             }
@@ -541,12 +542,12 @@ public class ActivityInquiryThread extends AppCompatActivity {
             mainHandler.post(() -> {
                 btnSubmitPharmacyReply.setEnabled(true);
                 if (affectedRows > 0) {
-                    Toast.makeText(ActivityInquiryThread.this, "Response posted!", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(ActivityInquiryThread.this, "Response posted!");
                     etReplyPrice.setText("");
                     etReplyNote.setText("");
                     loadPharmacyReplies();
                 } else {
-                    Toast.makeText(ActivityInquiryThread.this, "Failed to post response. Please check database constraint.", Toast.LENGTH_LONG).show();
+                    UiMessage.showLong(ActivityInquiryThread.this, "Failed to post response. Please check database constraint.");
                 }
             });
         });

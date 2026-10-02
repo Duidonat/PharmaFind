@@ -35,5 +35,8 @@
         <item name="elevationOverlayEnabled">false</item>
         <!-- Soft slide-and-fade between screens -->
         <item name="android:windowAnimationStyle">@style/Animation.PharmaFind.Activity</item>
+        <!-- Snackbar (message) colors: dark teal with white text -->
+        <item name="colorSurfaceInverse">@color/primary_dark</item>
+        <item name="colorOnSurfaceInverse">@color/white</item>
     </style>
 </resources>

@@ -128,14 +128,14 @@ public class MainActivity extends AppCompatActivity {
                 String password = etPassword != null ? etPassword.getText().toString().trim() : "";
 
                 if (username.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(bottomSheetDialog, "Please enter username and password");
                     return;
                 }
 
                 boolean rememberMe = cbRememberMe != null && cbRememberMe.isChecked();
 
                 btnLoginSubmit.setEnabled(false);
-                Toast.makeText(this, "Logging in...", Toast.LENGTH_SHORT).show();
+                UiMessage.show(bottomSheetDialog, "Logging in...");
                 performLogin(username, password, rememberMe, bottomSheetDialog, btnLoginSubmit);
             });
         }
@@ -154,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Failed to connect to database. Please check connection.", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Failed to connect to database. Please check connection.");
                 });
                 return;
             }
@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity {
                     con.close();
 
                     mainHandler.post(() -> {
+                        // Toast, not UiMessage: this screen closes right after, which would take a Snackbar with it.
                         Toast.makeText(MainActivity.this, "Welcome Customer: " + name, Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                         Intent intent = new Intent(MainActivity.this, CustomerHomeActivity.class);
@@ -217,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
                     con.close();
 
                     mainHandler.post(() -> {
+                        // Toast, not UiMessage: this screen closes right after, which would take a Snackbar with it.
                         Toast.makeText(MainActivity.this, "Welcome Pharmacy: " + name, Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                         Intent intent = new Intent(MainActivity.this, PharmacyHomeActivity.class);
@@ -230,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
 
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Invalid Username or Password", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Invalid Username or Password");
                 });
 
             } catch (SQLException e) {
@@ -240,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MainActivity", "Login Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
             }
         });
@@ -265,17 +267,17 @@ public class MainActivity extends AppCompatActivity {
                 String confirmPassword = etResetConfirmPassword.getText().toString().trim();
 
                 if (username.isEmpty() || email.isEmpty() || newPassword.isEmpty()) {
-                    Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(bottomSheetDialog, "Please fill in all fields");
                     return;
                 }
 
                 if (!newPassword.equals(confirmPassword)) {
-                    Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(bottomSheetDialog, "Passwords do not match");
                     return;
                 }
 
                 btnSubmitReset.setEnabled(false);
-                Toast.makeText(this, "Checking your details...", Toast.LENGTH_SHORT).show();
+                UiMessage.show(bottomSheetDialog, "Checking your details...");
                 resetPassword(username, email, newPassword, bottomSheetDialog, btnSubmitReset);
             });
         }
@@ -294,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Failed to connect to database. Please check connection.", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Failed to connect to database. Please check connection.");
                 });
                 return;
             }
@@ -318,6 +320,7 @@ public class MainActivity extends AppCompatActivity {
                     con.close();
 
                     mainHandler.post(() -> {
+                        // Toast, not UiMessage: another sheet opens right after, which would hide a Snackbar.
                         Toast.makeText(MainActivity.this, "Password reset! Please log in with your new password.", Toast.LENGTH_LONG).show();
                         dialog.dismiss();
                         showLoginDialog();
@@ -343,6 +346,7 @@ public class MainActivity extends AppCompatActivity {
                     con.close();
 
                     mainHandler.post(() -> {
+                        // Toast, not UiMessage: another sheet opens right after, which would hide a Snackbar.
                         Toast.makeText(MainActivity.this, "Password reset! Please log in with your new password.", Toast.LENGTH_LONG).show();
                         dialog.dismiss();
                         showLoginDialog();
@@ -354,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
 
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "We couldn't verify those details. Check your username and email.", Toast.LENGTH_LONG).show();
+                    UiMessage.showLong(dialog, "We couldn't verify those details. Check your username and email.");
                 });
 
             } catch (SQLException e) {
@@ -364,7 +368,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MainActivity", "Reset Password Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
             }
         });
@@ -443,13 +447,13 @@ public class MainActivity extends AppCompatActivity {
             valid &= checkRequired(etBarangay, barangay, "Enter your barangay");
             valid &= checkContactAndAccount(etEmail, etContact, etUsername, etPassword, etConfirmPassword, email, contact, username, password, confirmPassword);
             if (!valid) {
-                Toast.makeText(this, "Please fix the highlighted fields", Toast.LENGTH_SHORT).show();
+                UiMessage.show(bottomSheetDialog, "Please fix the highlighted fields");
                 scrollToFirstError(etPharmacyName, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
                 return;
             }
 
             btnSubmit.setEnabled(false);
-            Toast.makeText(this, "Registering Pharmacy...", Toast.LENGTH_SHORT).show();
+            UiMessage.show(bottomSheetDialog, "Registering Pharmacy...");
             registerPharmacy(pharmacyName, city, barangay, district, email, contact, username, password, bottomSheetDialog, btnSubmit);
         });
 
@@ -467,7 +471,7 @@ public class MainActivity extends AppCompatActivity {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Database Connection Failed.", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Database Connection Failed.");
                 });
                 return;
             }
@@ -489,11 +493,11 @@ public class MainActivity extends AppCompatActivity {
 
                 mainHandler.post(() -> {
                     if (rows > 0) {
-                        Toast.makeText(MainActivity.this, "Pharmacy Registration Successful! Pending admin verification.", Toast.LENGTH_LONG).show();
+                        UiMessage.showLong(MainActivity.this, "Pharmacy Registration Successful! Pending admin verification.");
                         dialog.dismiss();
                     } else {
                         if (btnSubmit != null) btnSubmit.setEnabled(true);
-                        Toast.makeText(MainActivity.this, "Registration failed.", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialog, "Registration failed.");
                     }
                 });
             } catch (SQLException e) {
@@ -503,7 +507,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MainActivity", "Register Pharmacy Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, isDuplicateKeyError(e) ? "That username or email is already registered. Try another one." : "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    UiMessage.showLong(dialog, isDuplicateKeyError(e) ? "That username or email is already registered. Try another one." : "Error: " + e.getMessage());
                 });
             }
         });
@@ -575,7 +579,7 @@ public class MainActivity extends AppCompatActivity {
             valid &= checkRequired(etBarangay, barangay, "Enter your barangay");
             valid &= checkContactAndAccount(etEmail, etContact, etUsername, etPassword, etConfirmPassword, email, contact, username, password, confirmPassword);
             if (!valid) {
-                Toast.makeText(this, "Please fix the highlighted fields", Toast.LENGTH_SHORT).show();
+                UiMessage.show(bottomSheetDialog, "Please fix the highlighted fields");
                 scrollToFirstError(etFirstName, etSurname, etAge, etBirthDate, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
                 return;
             }
@@ -583,7 +587,7 @@ public class MainActivity extends AppCompatActivity {
             int age = Integer.parseInt(ageStr);
 
             btnSubmit.setEnabled(false);
-            Toast.makeText(this, "Registering Customer...", Toast.LENGTH_SHORT).show();
+            UiMessage.show(bottomSheetDialog, "Registering Customer...");
             registerCustomer(firstName, surname, middleInitial, city, barangay, district, age, birthDate, email, contact, username, password, bottomSheetDialog, btnSubmit);
         });
 
@@ -601,7 +605,7 @@ public class MainActivity extends AppCompatActivity {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Database Connection Failed.", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Database Connection Failed.");
                 });
                 return;
             }
@@ -627,11 +631,11 @@ public class MainActivity extends AppCompatActivity {
 
                 mainHandler.post(() -> {
                     if (rows > 0) {
-                        Toast.makeText(MainActivity.this, "Customer Registration Successful!", Toast.LENGTH_LONG).show();
+                        UiMessage.showLong(MainActivity.this, "Customer Registration Successful!");
                         dialog.dismiss();
                     } else {
                         if (btnSubmit != null) btnSubmit.setEnabled(true);
-                        Toast.makeText(MainActivity.this, "Registration failed.", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialog, "Registration failed.");
                     }
                 });
             } catch (SQLException e) {
@@ -641,7 +645,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("MainActivity", "Register Customer Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, isDuplicateKeyError(e) ? "That username or email is already registered. Try another one." : "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    UiMessage.showLong(dialog, isDuplicateKeyError(e) ? "That username or email is already registered. Try another one." : "Error: " + e.getMessage());
                 });
             }
         });

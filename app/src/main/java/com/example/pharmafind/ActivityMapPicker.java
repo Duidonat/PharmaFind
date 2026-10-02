@@ -12,7 +12,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -128,10 +127,10 @@ public class ActivityMapPicker extends AppCompatActivity implements OnMapReadyCa
                 if (webViewMapPicker != null) {
                     if (webViewMapPicker.getVisibility() == View.VISIBLE) {
                         webViewMapPicker.setVisibility(View.GONE);
-                        Toast.makeText(this, "Switched to Google Maps View", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(this, "Switched to Google Maps View");
                     } else {
                         webViewMapPicker.setVisibility(View.VISIBLE);
-                        Toast.makeText(this, "Switched to OpenStreetMap Tile View", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(this, "Switched to OpenStreetMap Tile View");
                     }
                 }
             });
@@ -151,7 +150,7 @@ public class ActivityMapPicker extends AppCompatActivity implements OnMapReadyCa
         if (btnConfirm != null) {
             btnConfirm.setOnClickListener(v -> {
                 if (selectedLatLng == null) {
-                    Toast.makeText(this, "Please tap on the map to select a location", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(this, "Please tap on the map to select a location");
                     return;
                 }
                 Intent resultIntent = new Intent();
@@ -343,7 +342,7 @@ public class ActivityMapPicker extends AppCompatActivity implements OnMapReadyCa
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(current, 16f));
                 }
             } else {
-                Toast.makeText(this, "Could not detect GPS location. Ensure location is enabled.", Toast.LENGTH_SHORT).show();
+                UiMessage.show(this, "Could not detect GPS location. Ensure location is enabled.");
             }
         });
     }
@@ -360,7 +359,7 @@ public class ActivityMapPicker extends AppCompatActivity implements OnMapReadyCa
             }
             fetchCurrentLocationAndMoveMap();
         } else {
-            Toast.makeText(this, "Location permission is needed to find your current location.", Toast.LENGTH_SHORT).show();
+            UiMessage.show(this, "Location permission is needed to find your current location.");
         }
     }
 }

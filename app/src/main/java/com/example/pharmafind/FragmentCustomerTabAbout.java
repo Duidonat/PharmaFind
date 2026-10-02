@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -68,7 +67,7 @@ public class FragmentCustomerTabAbout extends Fragment {
                         if (dialogEtLat != null) dialogEtLat.setText(String.format(Locale.US, "%.6f", lat));
                         if (dialogEtLng != null) dialogEtLng.setText(String.format(Locale.US, "%.6f", lng));
                         if (dialogTvPinCoords != null) dialogTvPinCoords.setText("Current Pin Set: " + String.format(Locale.US, "%.5f, %.5f", lat, lng));
-                        Toast.makeText(getContext(), "Location pin selected from Map!", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialogTvPinCoords, "Location pin selected from Map!");
                     }
                 }
             }
@@ -230,7 +229,7 @@ public class FragmentCustomerTabAbout extends Fragment {
                     lat = latStr.isEmpty() ? 0.0 : Double.parseDouble(latStr);
                     lng = lngStr.isEmpty() ? 0.0 : Double.parseDouble(lngStr);
                 } catch (NumberFormatException e) {
-                    Toast.makeText(getContext(), "Please enter a valid latitude and longitude, or leave both blank", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Please enter a valid latitude and longitude, or leave both blank");
                     return;
                 }
 
@@ -261,9 +260,9 @@ public class FragmentCustomerTabAbout extends Fragment {
                 double lng = location.getLongitude();
                 if (dialogEtLat != null) dialogEtLat.setText(String.format(Locale.US, "%.6f", lat));
                 if (dialogEtLng != null) dialogEtLng.setText(String.format(Locale.US, "%.6f", lng));
-                Toast.makeText(getContext(), "Current GPS Pin Detected!", Toast.LENGTH_SHORT).show();
+                UiMessage.show(dialogEtLat, "Current GPS Pin Detected!");
             } else {
-                Toast.makeText(getContext(), "Unable to detect GPS. Make sure location is turned on.", Toast.LENGTH_SHORT).show();
+                UiMessage.show(dialogEtLat, "Unable to detect GPS. Make sure location is turned on.");
             }
         });
     }
@@ -274,7 +273,7 @@ public class FragmentCustomerTabAbout extends Fragment {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSave != null) btnSave.setEnabled(true);
-                    Toast.makeText(getContext(), "Database connection error", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Database connection error");
                 });
                 return;
             }
@@ -298,11 +297,11 @@ public class FragmentCustomerTabAbout extends Fragment {
                         sessionManager.createCustomerSession(sessionManager.getUserId(), sessionManager.getUsername(), sessionManager.getFullName(), city, barangay, district);
                         sessionManager.setLocationCoordinates(lat, lng);
 
-                        Toast.makeText(getContext(), "Location Profile & GPS Pin Updated!", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(this, "Location Profile & GPS Pin Updated!");
                         dialog.dismiss();
                         loadCustomerDetails();
                     } else {
-                        Toast.makeText(getContext(), "Update failed", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialog, "Update failed");
                     }
                 });
 
@@ -313,7 +312,7 @@ public class FragmentCustomerTabAbout extends Fragment {
                 Log.e("CustomerTabAbout", "Error saving profile: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSave != null) btnSave.setEnabled(true);
-                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
             }
         });
@@ -338,7 +337,7 @@ public class FragmentCustomerTabAbout extends Fragment {
         if (granted) {
             fetchCurrentLocationPin();
         } else if (getContext() != null) {
-            Toast.makeText(getContext(), "Location permission is needed to detect your GPS pin.", Toast.LENGTH_SHORT).show();
+            UiMessage.show(dialogEtLat, "Location permission is needed to detect your GPS pin.");
         }
     }
 }

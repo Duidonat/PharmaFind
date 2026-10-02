@@ -20,7 +20,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -400,7 +399,7 @@ public class FragmentCustomerFeed extends Fragment {
                 String description = etDescription.getText().toString().trim();
 
                 if (medicineName.isEmpty()) {
-                    Toast.makeText(getContext(), "Please enter the medicine name", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Please enter the medicine name");
                     return;
                 }
 
@@ -439,7 +438,7 @@ public class FragmentCustomerFeed extends Fragment {
             }
         } catch (Exception e) {
             Log.e("FragmentCustomerFeed", "Image processing failed: " + e.getMessage());
-            Toast.makeText(getContext(), "Failed to load image", Toast.LENGTH_SHORT).show();
+            UiMessage.show(photoPreviewContainerDialog, "Failed to load image");
         }
     }
 
@@ -449,7 +448,7 @@ public class FragmentCustomerFeed extends Fragment {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnPost != null) btnPost.setEnabled(true);
-                    Toast.makeText(getContext(), "Database Connection Failed", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Database Connection Failed");
                 });
                 return;
             }
@@ -475,11 +474,11 @@ public class FragmentCustomerFeed extends Fragment {
                 mainHandler.post(() -> {
                     if (btnPost != null) btnPost.setEnabled(true);
                     if (rows > 0) {
-                        Toast.makeText(getContext(), "Medicine Request Posted!", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(this, "Medicine Request Posted!");
                         dialog.dismiss();
                         loadInquiriesFromDB();
                     } else {
-                        Toast.makeText(getContext(), "Failed to post request", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialog, "Failed to post request");
                     }
                 });
 
@@ -490,7 +489,7 @@ public class FragmentCustomerFeed extends Fragment {
                 Log.e("FragmentCustomerFeed", "Post Inquiry Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnPost != null) btnPost.setEnabled(true);
-                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
             }
         });

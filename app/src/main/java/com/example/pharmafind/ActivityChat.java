@@ -8,7 +8,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -183,7 +182,7 @@ public class ActivityChat extends AppCompatActivity {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) {
-                mainHandler.post(() -> Toast.makeText(ActivityChat.this, "Database connection error", Toast.LENGTH_SHORT).show());
+                mainHandler.post(() -> UiMessage.show(ActivityChat.this, "Database connection error"));
                 return;
             }
 
