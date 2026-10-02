@@ -99,7 +99,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
         inquiryId = getIntent().getIntExtra("inquiry_id", -1);
         if (inquiryId == -1) {
-            Toast.makeText(this, "Invalid Inquiry", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Invalid request", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }

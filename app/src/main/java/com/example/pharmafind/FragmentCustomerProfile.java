@@ -38,7 +38,7 @@ public class FragmentCustomerProfile extends Fragment {
             if (position == 0) {
                 tab.setText("About / Personal Info");
             } else {
-                tab.setText("My Inquiries");
+                tab.setText("My Requests");
             }
         }).attach();
 
