@@ -94,11 +94,19 @@ public class PharmacyHomeActivity extends AppCompatActivity {
 
             try {
                 Statement stmt = con.createStatement();
-                String query = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Pharmacies' AND COLUMN_NAME = 'Latitude') " +
-                        "BEGIN " +
-                        "ALTER TABLE dbo.Pharmacies ADD Latitude FLOAT, Longitude FLOAT, OperatingHours NVARCHAR(255), Bio NVARCHAR(MAX) " +
-                        "END";
-                stmt.executeUpdate(query);
+                // Check each column on its own: the old setup script already created Latitude but not
+                // Bio, so a single "is Latitude missing?" check never added the rest.
+                String[] addColumns = {
+                        "Latitude DECIMAL(10, 8) NULL",
+                        "Longitude DECIMAL(11, 8) NULL",
+                        "OperatingHours NVARCHAR(255) NULL",
+                        "Bio NVARCHAR(MAX) NULL"
+                };
+                for (String column : addColumns) {
+                    String name = column.substring(0, column.indexOf(' '));
+                    stmt.executeUpdate("IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Pharmacies' AND COLUMN_NAME = '" + name + "') " +
+                            "ALTER TABLE dbo.Pharmacies ADD " + column);
+                }
                 con.close();
             } catch (SQLException e) {
                 try {
