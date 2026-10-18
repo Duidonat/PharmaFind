@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -40,8 +41,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
     private UserSessionManager sessionManager;
     private int inquiryId = -1;
 
-    private TextView tvCustomerName, tvLocationAndDate, tvStatusBadge, tvMedicineName, tvDescription, tvRepliesHeader;
+    private TextView tvCustomerName, tvLocationAndDate, tvStatusBadge, tvMedicineName, tvDescription, tvRepliesHeader, tvRepliesEmptyState, tvPhotoRestricted;
     private ImageView ivInquiryImage;
+    private ProgressBar pbRepliesLoading;
     private RecyclerView rvReplies;
     private PharmacyReplyAdapter replyAdapter;
     private List<PharmacyReplyModel> replyList;
@@ -93,10 +95,12 @@ public class ActivityInquiryThread extends AppCompatActivity {
         });
 
         ensurePharmacyRepliesColumnsExist();
+        ensureInquiriesColumnsExist();
 
         inquiryId = getIntent().getIntExtra("inquiry_id", -1);
         if (inquiryId == -1) {
-            Toast.makeText(this, "Invalid Inquiry", Toast.LENGTH_SHORT).show();
+            // Toast, not UiMessage: this screen closes right after, which would take a Snackbar with it.
+            Toast.makeText(this, "Invalid request", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
@@ -110,7 +114,10 @@ public class ActivityInquiryThread extends AppCompatActivity {
         tvMedicineName = findViewById(R.id.tvMedicineName);
         tvDescription = findViewById(R.id.tvDescription);
         tvRepliesHeader = findViewById(R.id.tvRepliesHeader);
+        tvRepliesEmptyState = findViewById(R.id.tvRepliesEmptyState);
+        pbRepliesLoading = findViewById(R.id.pbRepliesLoading);
         ivInquiryImage = findViewById(R.id.ivInquiryImage);
+        tvPhotoRestricted = findViewById(R.id.tvPhotoRestricted);
 
         rvReplies = findViewById(R.id.rvReplies);
         rvReplies.setLayoutManager(new LinearLayoutManager(this));
@@ -129,7 +136,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + contact));
                     startActivity(intent);
                 } else {
-                    Toast.makeText(ActivityInquiryThread.this, "No phone contact available", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(ActivityInquiryThread.this, "No phone contact available");
                 }
             }
 
@@ -192,29 +199,43 @@ public class ActivityInquiryThread extends AppCompatActivity {
             if (con == null) return;
 
             try {
-                String query = "SELECT CustomerName, MedicineName, Description, ImageUrl, City, Barangay, District, Status, CONVERT(VARCHAR, CreatedAt, 120) AS CreatedAtStr FROM dbo.Inquiries WHERE InquiryID = ?";
+                String query = "SELECT CustomerID, CustomerName, MedicineName, Description, CASE WHEN ImageUrl IS NOT NULL AND ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, City, Barangay, District, Status, CONVERT(VARCHAR, CreatedAt, 120) AS CreatedAtStr FROM dbo.Inquiries WHERE InquiryID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, inquiryId);
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs.next()) {
+                    int customerId = rs.getInt("CustomerID");
                     String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
                     String description = rs.getString("Description");
-                    String imageUrl = rs.getString("ImageUrl");
+                    boolean hasImage = rs.getInt("HasImage") == 1;
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String status = rs.getString("Status");
                     String createdAt = rs.getString("CreatedAtStr");
 
+                    // The attached photo (often a prescription) is only for the customer who posted
+                    // this inquiry and for pharmacies. It's only fetched for them, so it never reaches
+                    // anyone else's phone.
+                    boolean isOwner = "customer".equalsIgnoreCase(sessionManager.getRole())
+                            && sessionManager.getUserId() == customerId;
+                    boolean canViewPhoto = isOwner || "pharmacy".equalsIgnoreCase(sessionManager.getRole());
+
                     Bitmap decodedBitmap = null;
-                    if (imageUrl != null && !imageUrl.trim().isEmpty()) {
-                        try {
-                            String imageStr = imageUrl;
-                            if (imageStr.contains(",")) imageStr = imageStr.split(",")[1];
-                            byte[] decodedBytes = Base64.decode(imageStr, Base64.DEFAULT);
-                            decodedBitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
-                        } catch (Exception ignored) {}
+                    if (hasImage && canViewPhoto) {
+                        PreparedStatement imageStmt = con.prepareStatement("SELECT ImageUrl FROM dbo.Inquiries WHERE InquiryID = ?");
+                        imageStmt.setInt(1, inquiryId);
+                        ResultSet imageRs = imageStmt.executeQuery();
+                        if (imageRs.next()) {
+                            String imageUrl = imageRs.getString("ImageUrl");
+                            try {
+                                String imageStr = imageUrl;
+                                if (imageStr.contains(",")) imageStr = imageStr.split(",")[1];
+                                byte[] decodedBytes = Base64.decode(imageStr, Base64.DEFAULT);
+                                decodedBitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                            } catch (Exception ignored) {}
+                        }
                     }
 
                     Bitmap finalBitmap = decodedBitmap;
@@ -224,6 +245,10 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         tvMedicineName.setText("Need: " + (medicineName != null ? medicineName : ""));
                         tvDescription.setText(description != null ? description : "");
                         tvStatusBadge.setText(status != null ? status.toUpperCase() : "OPEN");
+                        InquiryAdapter.styleStatusBadge(tvStatusBadge, status);
+
+                        // Only the customer who posted this inquiry may select a pharmacy's offer.
+                        replyAdapter.setCanSelectPharmacy(isOwner);
 
                         if (finalBitmap != null) {
                             ivInquiryImage.setImageBitmap(finalBitmap);
@@ -231,24 +256,36 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         } else {
                             ivInquiryImage.setVisibility(View.GONE);
                         }
+                        if (tvPhotoRestricted != null) {
+                            tvPhotoRestricted.setVisibility(hasImage && !canViewPhoto ? View.VISIBLE : View.GONE);
+                        }
                     });
                 }
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error loading inquiry details: " + e.getMessage());
             }
         });
     }
 
     private void loadPharmacyReplies() {
+        if (pbRepliesLoading != null) pbRepliesLoading.setVisibility(View.VISIBLE);
+        if (tvRepliesEmptyState != null) tvRepliesEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showRepliesError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             try {
                 List<PharmacyReplyModel> tempReplies = new ArrayList<>();
-                String query = "SELECT r.ReplyID, r.InquiryID, r.PharmacyID, p.PharmacyName, r.AvailabilityStatus, r.Price, r.Note, CONVERT(VARCHAR, r.CreatedAt, 120) AS CreatedAtStr, p.City, p.Barangay, p.Contact " +
+                String query = "SELECT r.ReplyID, r.InquiryID, r.PharmacyID, p.PharmacyName, r.AvailabilityStatus, r.Price, r.Note, CONVERT(VARCHAR, r.CreatedAt, 120) AS CreatedAtStr, p.City, p.Barangay, p.Contact, p.Status AS PharmacyStatus " +
                         "FROM dbo.PharmacyReplies r " +
                         "LEFT JOIN dbo.Pharmacies p ON r.PharmacyID = p.PharmacyID " +
                         "WHERE r.InquiryID = ? " +
@@ -269,9 +306,10 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String contact = rs.getString("Contact");
+                    String pharmacyStatus = rs.getString("PharmacyStatus");
 
                     tempReplies.add(new PharmacyReplyModel(
-                            replyId, inquiryId, pharmacyId, pharmacyName, availStatus, price, note, createdAt, city, barangay, contact
+                            replyId, inquiryId, pharmacyId, pharmacyName, availStatus, price, note, createdAt, city, barangay, contact, pharmacyStatus
                     ));
                 }
 
@@ -280,14 +318,31 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 mainHandler.post(() -> {
                     replyList.clear();
                     replyList.addAll(tempReplies);
-                    tvRepliesHeader.setText("💬 Pharmacy Responses (" + replyList.size() + ")");
+                    tvRepliesHeader.setText("Pharmacy Responses (" + replyList.size() + ")");
                     replyAdapter.notifyDataSetChanged();
+                    if (pbRepliesLoading != null) pbRepliesLoading.setVisibility(View.GONE);
+                    if (tvRepliesEmptyState != null) {
+                        tvRepliesEmptyState.setText("No pharmacy responses yet.");
+                        tvRepliesEmptyState.setVisibility(replyList.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error loading pharmacy replies: " + e.getMessage());
+                mainHandler.post(() -> showRepliesError("Couldn't load pharmacy responses. Please try again."));
             }
         });
+    }
+
+    private void showRepliesError(String message) {
+        if (pbRepliesLoading != null) pbRepliesLoading.setVisibility(View.GONE);
+        if (tvRepliesEmptyState != null) {
+            tvRepliesEmptyState.setText(message);
+            tvRepliesEmptyState.setVisibility(View.VISIBLE);
+        }
     }
 
     private void markInquiryFulfilled(PharmacyReplyModel reply) {
@@ -296,16 +351,20 @@ public class ActivityInquiryThread extends AppCompatActivity {
             if (con == null) return;
 
             try {
-                String query = "UPDATE dbo.Inquiries SET Status = 'fulfilled' WHERE InquiryID = ?";
+                String query = "UPDATE dbo.Inquiries SET Status = 'fulfilled', AcceptedPharmacyID = ? WHERE InquiryID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
-                stmt.setInt(1, inquiryId);
+                stmt.setInt(1, reply.getPharmacyId());
+                stmt.setInt(2, inquiryId);
                 int rows = stmt.executeUpdate();
                 con.close();
 
                 mainHandler.post(() -> {
                     if (rows > 0) {
-                        Toast.makeText(ActivityInquiryThread.this, "Pharmacy Selected! Opening Store Location...", Toast.LENGTH_LONG).show();
-                        if (tvStatusBadge != null) tvStatusBadge.setText("FULFILLED");
+                        UiMessage.showLong(ActivityInquiryThread.this, "Pharmacy Selected! Opening Store Location...");
+                        if (tvStatusBadge != null) {
+                            tvStatusBadge.setText("FULFILLED");
+                            InquiryAdapter.styleStatusBadge(tvStatusBadge, "fulfilled");
+                        }
 
                         Intent intent = new Intent(ActivityInquiryThread.this, ActivityPharmacyProfile.class);
                         intent.putExtra("pharmacy_id", reply.getPharmacyId());
@@ -314,7 +373,33 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error fulfilling inquiry: " + e.getMessage());
+            }
+        });
+    }
+
+    private void ensureInquiriesColumnsExist() {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
+
+            try {
+                Statement stmt = con.createStatement();
+                String alterColQuery = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'AcceptedPharmacyID') " +
+                        "BEGIN " +
+                        "ALTER TABLE dbo.Inquiries ADD AcceptedPharmacyID INT NULL " +
+                        "END";
+                stmt.executeUpdate(alterColQuery);
+
+                con.close();
+            } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
+                Log.e("ActivityInquiryThread", "Error checking Inquiries table columns: " + e.getMessage());
             }
         });
     }
@@ -347,8 +432,26 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         "END";
                 stmt.executeUpdate(alterColQuery);
 
+                // Some databases were set up from the README script, which never added these two
+                // columns under these names (it used IsAvailable/PriceInfo instead). The app reads
+                // and writes AvailabilityStatus/Price everywhere, so add them if they're missing.
+                String alterAvailabilityQuery = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PharmacyReplies' AND COLUMN_NAME = 'AvailabilityStatus') " +
+                        "BEGIN " +
+                        "ALTER TABLE dbo.PharmacyReplies ADD AvailabilityStatus NVARCHAR(50) NULL " +
+                        "END";
+                stmt.executeUpdate(alterAvailabilityQuery);
+
+                String alterPriceQuery = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'PharmacyReplies' AND COLUMN_NAME = 'Price') " +
+                        "BEGIN " +
+                        "ALTER TABLE dbo.PharmacyReplies ADD Price NVARCHAR(50) NULL " +
+                        "END";
+                stmt.executeUpdate(alterPriceQuery);
+
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityInquiryThread", "Error checking PharmacyReplies table columns: " + e.getMessage());
             }
         });
@@ -371,7 +474,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
         final String availabilityStatus = selectedAvailability;
 
         if (price.isEmpty() && note.isEmpty()) {
-            Toast.makeText(this, "Please enter price or note", Toast.LENGTH_SHORT).show();
+            UiMessage.show(this, "Please enter price or note");
             return;
         }
 
@@ -382,7 +485,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
             if (con == null) {
                 mainHandler.post(() -> {
                     btnSubmitPharmacyReply.setEnabled(true);
-                    Toast.makeText(ActivityInquiryThread.this, "Database connection error", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(ActivityInquiryThread.this, "Database connection error");
                 });
                 return;
             }
@@ -439,12 +542,12 @@ public class ActivityInquiryThread extends AppCompatActivity {
             mainHandler.post(() -> {
                 btnSubmitPharmacyReply.setEnabled(true);
                 if (affectedRows > 0) {
-                    Toast.makeText(ActivityInquiryThread.this, "Response posted!", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(ActivityInquiryThread.this, "Response posted!");
                     etReplyPrice.setText("");
                     etReplyNote.setText("");
                     loadPharmacyReplies();
                 } else {
-                    Toast.makeText(ActivityInquiryThread.this, "Failed to post response. Please check database constraint.", Toast.LENGTH_LONG).show();
+                    UiMessage.showLong(ActivityInquiryThread.this, "Failed to post response. Please check database constraint.");
                 }
             });
         });

@@ -18,8 +18,8 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -56,6 +56,9 @@ public class FragmentCustomerFeed extends Fragment {
     private String currentSearchQuery = "";
     private String currentStatusFilter = "all"; // 'all', 'open', 'fulfilled'
 
+    private ProgressBar pbFeedLoading;
+    private TextView tvFeedEmptyState;
+
     private ActivityResultLauncher<String> imagePickerLauncher;
     private ImageView ivAttachedPhotoDialog;
     private FrameLayout photoPreviewContainerDialog;
@@ -89,6 +92,8 @@ public class FragmentCustomerFeed extends Fragment {
 
         etSearchFeed = view.findViewById(R.id.etSearchFeed);
         chipGroupFilter = view.findViewById(R.id.chipGroupFilter);
+        pbFeedLoading = view.findViewById(R.id.pbFeedLoading);
+        tvFeedEmptyState = view.findViewById(R.id.tvFeedEmptyState);
 
         RecyclerView rvInquiries = view.findViewById(R.id.rvInquiries);
         rvInquiries.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -136,9 +141,16 @@ public class FragmentCustomerFeed extends Fragment {
         }
 
         ensureTablesExist();
-        loadInquiriesFromDB();
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload every time this screen becomes visible again (e.g. returning from a
+        // request thread), so reply counts and statuses don't stay stale.
+        loadInquiriesFromDB();
     }
 
     private void filterInquiries() {
@@ -164,6 +176,23 @@ public class FragmentCustomerFeed extends Fragment {
 
         if (inquiryAdapter != null) {
             inquiryAdapter.notifyDataSetChanged();
+        }
+
+        if (tvFeedEmptyState != null) {
+            if (displayedInquiriesList.isEmpty()) {
+                tvFeedEmptyState.setText("No requests found.");
+                tvFeedEmptyState.setVisibility(View.VISIBLE);
+            } else {
+                tvFeedEmptyState.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void showFeedError(String message) {
+        if (pbFeedLoading != null) pbFeedLoading.setVisibility(View.GONE);
+        if (tvFeedEmptyState != null) {
+            tvFeedEmptyState.setText(message);
+            tvFeedEmptyState.setVisibility(View.VISIBLE);
         }
     }
 
@@ -198,6 +227,9 @@ public class FragmentCustomerFeed extends Fragment {
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Barangay') ALTER TABLE dbo.Inquiries ADD Barangay NVARCHAR(100) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'District') ALTER TABLE dbo.Inquiries ADD District NVARCHAR(100) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'ImageUrl') ALTER TABLE dbo.Inquiries ADD ImageUrl NVARCHAR(MAX) NULL;",
+                    // The README's setup script created ImageUrl as NVARCHAR(255), far too small for a
+                    // photo stored as Base64 text - widen it so posting a request with a photo works.
+                    "IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'ImageUrl' AND CHARACTER_MAXIMUM_LENGTH <> -1) ALTER TABLE dbo.Inquiries ALTER COLUMN ImageUrl NVARCHAR(MAX) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Description') ALTER TABLE dbo.Inquiries ADD Description NVARCHAR(MAX) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Status') ALTER TABLE dbo.Inquiries ADD Status NVARCHAR(50) DEFAULT 'open';"
             };
@@ -243,20 +275,45 @@ public class FragmentCustomerFeed extends Fragment {
     }
 
     private void loadInquiriesFromDB() {
+        if (pbFeedLoading != null) pbFeedLoading.setVisibility(View.VISIBLE);
+        if (tvFeedEmptyState != null) tvFeedEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showFeedError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             ensureTablesExistInternal(con);
 
             try {
                 List<InquiryModel> tempInquiries = new ArrayList<>();
-                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                String customerBarangay = sessionManager.getBarangay();
+                String customerCity = sessionManager.getCity();
+
+                // Same area-matching approach as FragmentPharmacyFeed, so "your area" means the
+                // same thing on both sides of the app.
+                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
                         "FROM dbo.Inquiries i " +
+                        "WHERE LOWER(i.Barangay) LIKE '%' + LOWER(?) + '%' " +
+                        "   OR LOWER(i.City) LIKE '%' + LOWER(?) + '%' " +
+                        "   OR LOWER(?) LIKE '%' + LOWER(i.Barangay) + '%' " +
+                        "   OR i.Barangay IS NULL OR i.Barangay = '' OR ? = '' " +
+                        // Match the city both ways too, so "Lipa City" and "Lipa" find each other
+                        "   OR LOWER(?) LIKE '%' + LOWER(i.City) + '%' " +
                         "ORDER BY i.CreatedAt DESC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
+                String bg = customerBarangay != null ? customerBarangay.trim() : "";
+                String ct = customerCity != null ? customerCity.trim() : "";
+                stmt.setString(1, bg);
+                stmt.setString(2, ct);
+                stmt.setString(3, bg);
+                stmt.setString(4, bg);
+                stmt.setString(5, ct);
+
                 ResultSet rs = stmt.executeQuery();
 
                 while (rs.next()) {
@@ -265,7 +322,7 @@ public class FragmentCustomerFeed extends Fragment {
                     String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
                     String description = rs.getString("Description");
-                    String imageUrl = rs.getString("ImageUrl");
+                    boolean hasImage = rs.getInt("HasImage") == 1;
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String district = rs.getString("District");
@@ -274,7 +331,7 @@ public class FragmentCustomerFeed extends Fragment {
                     int replyCount = rs.getInt("ReplyCount");
 
                     tempInquiries.add(new InquiryModel(
-                            inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
+                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount
                     ));
                 }
 
@@ -283,11 +340,16 @@ public class FragmentCustomerFeed extends Fragment {
                 mainHandler.post(() -> {
                     allInquiriesList.clear();
                     allInquiriesList.addAll(tempInquiries);
+                    if (pbFeedLoading != null) pbFeedLoading.setVisibility(View.GONE);
                     filterInquiries();
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("FragmentCustomerFeed", "Load Inquiries Error: " + e.getMessage());
+                mainHandler.post(() -> showFeedError("Couldn't load requests. Please try again."));
             }
         });
     }
@@ -337,7 +399,7 @@ public class FragmentCustomerFeed extends Fragment {
                 String description = etDescription.getText().toString().trim();
 
                 if (medicineName.isEmpty()) {
-                    Toast.makeText(getContext(), "Please enter the medicine name", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Please enter the medicine name");
                     return;
                 }
 
@@ -376,7 +438,7 @@ public class FragmentCustomerFeed extends Fragment {
             }
         } catch (Exception e) {
             Log.e("FragmentCustomerFeed", "Image processing failed: " + e.getMessage());
-            Toast.makeText(getContext(), "Failed to load image", Toast.LENGTH_SHORT).show();
+            UiMessage.show(photoPreviewContainerDialog, "Failed to load image");
         }
     }
 
@@ -386,7 +448,7 @@ public class FragmentCustomerFeed extends Fragment {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnPost != null) btnPost.setEnabled(true);
-                    Toast.makeText(getContext(), "Database Connection Failed", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Database Connection Failed");
                 });
                 return;
             }
@@ -412,19 +474,22 @@ public class FragmentCustomerFeed extends Fragment {
                 mainHandler.post(() -> {
                     if (btnPost != null) btnPost.setEnabled(true);
                     if (rows > 0) {
-                        Toast.makeText(getContext(), "Medicine Request Posted!", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(this, "Medicine Request Posted!");
                         dialog.dismiss();
                         loadInquiriesFromDB();
                     } else {
-                        Toast.makeText(getContext(), "Failed to post request", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialog, "Failed to post request");
                     }
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("FragmentCustomerFeed", "Post Inquiry Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnPost != null) btnPost.setEnabled(true);
-                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
             }
         });

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light">
@@ -16,6 +17,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/headerContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
@@ -37,7 +39,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="📍 Barangay Marawoy, Lipa City"
+                android:drawablePadding="6dp"
+                android:drawableStart="@drawable/ic_location_on_16"
+                android:drawableTint="#E0E0E0"
+                tools:text="Barangay Marawoy, Lipa City"
                 android:textColor="#E0E0E0"
                 android:textSize="13sp"
                 app:layout_constraintEnd_toStartOf="@id/btnLogout"

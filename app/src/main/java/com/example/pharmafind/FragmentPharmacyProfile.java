@@ -36,9 +36,9 @@ public class FragmentPharmacyProfile extends Fragment {
             String barangay = session.getBarangay();
             String city = session.getCity();
             if (!barangay.trim().isEmpty() || !city.trim().isEmpty()) {
-                tvPharmacyProfileLocation.setText("📍 Barangay " + barangay + ", " + city);
+                tvPharmacyProfileLocation.setText("Barangay " + barangay + ", " + city);
             } else {
-                tvPharmacyProfileLocation.setText("📍 Location Not Set");
+                tvPharmacyProfileLocation.setText("Location Not Set");
             }
         }
 

@@ -14,7 +14,6 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -67,7 +66,7 @@ public class FragmentPharmacyTabAbout extends Fragment {
                         if (dialogEtLat != null) dialogEtLat.setText(String.format(Locale.US, "%.6f", lat));
                         if (dialogEtLng != null) dialogEtLng.setText(String.format(Locale.US, "%.6f", lng));
                         if (dialogTvPinCoords != null) dialogTvPinCoords.setText("Current Pin Set: " + String.format(Locale.US, "%.5f, %.5f", lat, lng));
-                        Toast.makeText(getContext(), "Store location pin selected from Map!", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialogTvPinCoords, "Store location pin selected from Map!");
                     }
                 }
             }
@@ -151,6 +150,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyTabAbout", "Error loading details: " + e.getMessage());
             }
         });
@@ -167,6 +169,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
         EditText etBio = dialogView.findViewById(R.id.etBioEdit);
         EditText etHours = dialogView.findViewById(R.id.etHoursEdit);
         EditText etContact = dialogView.findViewById(R.id.etContactEdit);
+        EditText etCity = dialogView.findViewById(R.id.etCityEdit);
+        EditText etBarangay = dialogView.findViewById(R.id.etBarangayEdit);
+        EditText etDistrict = dialogView.findViewById(R.id.etDistrictEdit);
         dialogTvPinCoords = dialogView.findViewById(R.id.tvPinCoordinates);
         dialogEtLat = dialogView.findViewById(R.id.etLatEdit);
         dialogEtLng = dialogView.findViewById(R.id.etLngEdit);
@@ -246,7 +251,7 @@ public class FragmentPharmacyTabAbout extends Fragment {
 
         if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
 
-        loadCurrentProfileDetailsIntoDialog(etName, etBio, etHours, etContact, dialogEtLat, dialogEtLng, dialogTvPinCoords);
+        loadCurrentProfileDetailsIntoDialog(etName, etBio, etHours, etContact, etCity, etBarangay, etDistrict, dialogEtLat, dialogEtLng, dialogTvPinCoords);
 
         if (btnUseGps != null) {
             btnUseGps.setOnClickListener(v -> fetchCurrentLocationPin());
@@ -273,14 +278,29 @@ public class FragmentPharmacyTabAbout extends Fragment {
                 String bio = etBio.getText().toString().trim();
                 String hours = etHours.getText().toString().trim();
                 String contact = etContact.getText().toString().trim();
+                String city = etCity.getText().toString().trim();
+                String barangay = etBarangay.getText().toString().trim();
+                String district = etDistrict.getText().toString().trim();
                 String latStr = dialogEtLat.getText().toString().trim();
                 String lngStr = dialogEtLng.getText().toString().trim();
 
-                double lat = latStr.isEmpty() ? 0.0 : Double.parseDouble(latStr);
-                double lng = lngStr.isEmpty() ? 0.0 : Double.parseDouble(lngStr);
+                double lat;
+                double lng;
+                try {
+                    lat = latStr.isEmpty() ? 0.0 : Double.parseDouble(latStr);
+                    lng = lngStr.isEmpty() ? 0.0 : Double.parseDouble(lngStr);
+                } catch (NumberFormatException e) {
+                    UiMessage.show(dialog, "Please enter a valid latitude and longitude, or leave both blank");
+                    return;
+                }
+
+                if (name.isEmpty() || city.isEmpty() || barangay.isEmpty()) {
+                    UiMessage.show(dialog, "Store name, city and barangay are required");
+                    return;
+                }
 
                 btnSave.setEnabled(false);
-                savePharmacyProfileToDB(name, bio, hours, contact, lat, lng, dialog, btnSave);
+                savePharmacyProfileToDB(name, bio, hours, contact, city, barangay, district, lat, lng, dialog, btnSave);
             });
         }
 
@@ -292,19 +312,22 @@ public class FragmentPharmacyTabAbout extends Fragment {
         dialog.show();
     }
 
-    private void loadCurrentProfileDetailsIntoDialog(EditText etName, EditText etBio, EditText etHours, EditText etContact, EditText etLat, EditText etLng, TextView tvPinCoords) {
+    private void loadCurrentProfileDetailsIntoDialog(EditText etName, EditText etBio, EditText etHours, EditText etContact, EditText etCity, EditText etBarangay, EditText etDistrict, EditText etLat, EditText etLng, TextView tvPinCoords) {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) return;
 
             try {
-                String query = "SELECT PharmacyName, Contact, Bio, OperatingHours, Latitude, Longitude FROM dbo.Pharmacies WHERE PharmacyID = ?";
+                String query = "SELECT PharmacyName, City, Barangay, District, Contact, Bio, OperatingHours, Latitude, Longitude FROM dbo.Pharmacies WHERE PharmacyID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, sessionManager.getUserId());
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs.next()) {
                     String name = rs.getString("PharmacyName");
+                    String city = rs.getString("City");
+                    String barangay = rs.getString("Barangay");
+                    String district = rs.getString("District");
                     String contact = rs.getString("Contact");
                     String bio = rs.getString("Bio");
                     String hours = rs.getString("OperatingHours");
@@ -313,6 +336,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
 
                     mainHandler.post(() -> {
                         if (etName != null) etName.setText(name != null ? name : "");
+                        if (etCity != null) etCity.setText(city != null ? city : "");
+                        if (etBarangay != null) etBarangay.setText(barangay != null ? barangay : "");
+                        if (etDistrict != null) etDistrict.setText(district != null ? district : "");
                         if (etContact != null) etContact.setText(contact != null ? contact : "");
                         if (etBio != null) etBio.setText(bio != null ? bio : "");
                         if (etHours != null) etHours.setText(hours != null ? hours : "");
@@ -329,6 +355,9 @@ public class FragmentPharmacyTabAbout extends Fragment {
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyTabAbout", "Error loading profile details: " + e.getMessage());
             }
         });
@@ -348,34 +377,37 @@ public class FragmentPharmacyTabAbout extends Fragment {
                 double lng = location.getLongitude();
                 if (dialogEtLat != null) dialogEtLat.setText(String.format(Locale.US, "%.6f", lat));
                 if (dialogEtLng != null) dialogEtLng.setText(String.format(Locale.US, "%.6f", lng));
-                Toast.makeText(getContext(), "Current GPS Pin Detected!", Toast.LENGTH_SHORT).show();
+                UiMessage.show(dialogEtLat, "Current GPS Pin Detected!");
             } else {
-                Toast.makeText(getContext(), "Unable to detect GPS. Make sure location is turned on.", Toast.LENGTH_SHORT).show();
+                UiMessage.show(dialogEtLat, "Unable to detect GPS. Make sure location is turned on.");
             }
         });
     }
 
-    private void savePharmacyProfileToDB(String name, String bio, String hours, String contact, double lat, double lng, BottomSheetDialog dialog, MaterialButton btnSave) {
+    private void savePharmacyProfileToDB(String name, String bio, String hours, String contact, String city, String barangay, String district, double lat, double lng, BottomSheetDialog dialog, MaterialButton btnSave) {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSave != null) btnSave.setEnabled(true);
-                    Toast.makeText(getContext(), "Database connection error", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Database connection error");
                 });
                 return;
             }
 
             try {
-                String query = "UPDATE dbo.Pharmacies SET PharmacyName = ?, Bio = ?, OperatingHours = ?, Contact = ?, Latitude = ?, Longitude = ? WHERE PharmacyID = ?";
+                String query = "UPDATE dbo.Pharmacies SET PharmacyName = ?, Bio = ?, OperatingHours = ?, Contact = ?, City = ?, Barangay = ?, District = ?, Latitude = ?, Longitude = ? WHERE PharmacyID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setString(1, name);
                 stmt.setString(2, bio);
                 stmt.setString(3, hours);
                 stmt.setString(4, contact);
-                stmt.setDouble(5, lat);
-                stmt.setDouble(6, lng);
-                stmt.setInt(7, sessionManager.getUserId());
+                stmt.setString(5, city);
+                stmt.setString(6, barangay);
+                stmt.setString(7, district);
+                stmt.setDouble(8, lat);
+                stmt.setDouble(9, lng);
+                stmt.setInt(10, sessionManager.getUserId());
 
                 int rows = stmt.executeUpdate();
                 con.close();
@@ -383,20 +415,23 @@ public class FragmentPharmacyTabAbout extends Fragment {
                 mainHandler.post(() -> {
                     if (btnSave != null) btnSave.setEnabled(true);
                     if (rows > 0) {
-                        sessionManager.createPharmacySession(sessionManager.getUserId(), sessionManager.getUsername(), name, sessionManager.getCity(), sessionManager.getBarangay(), sessionManager.getDistrict(), sessionManager.getStatus());
-                        Toast.makeText(getContext(), "Profile & Location Pin Updated!", Toast.LENGTH_SHORT).show();
+                        sessionManager.createPharmacySession(sessionManager.getUserId(), sessionManager.getUsername(), name, city, barangay, district, sessionManager.getStatus());
+                        UiMessage.show(this, "Profile & Location Pin Updated!");
                         dialog.dismiss();
                         loadPharmacyDetails();
                     } else {
-                        Toast.makeText(getContext(), "Update failed", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialog, "Update failed");
                     }
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyTabAbout", "Error saving profile: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSave != null) btnSave.setEnabled(true);
-                    Toast.makeText(getContext(), "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
             }
         });
@@ -406,5 +441,22 @@ public class FragmentPharmacyTabAbout extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         executor.shutdown();
+    }
+
+    // After the user taps Allow on the system prompt, carry on with what they asked for instead of
+    // making them tap the button a second time.
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode != LOCATION_PERMISSION_REQUEST_CODE) return;
+        boolean granted = false;
+        for (int result : grantResults) {
+            if (result == PackageManager.PERMISSION_GRANTED) granted = true;
+        }
+        if (granted) {
+            fetchCurrentLocationPin();
+        } else if (getContext() != null) {
+            UiMessage.show(dialogEtLat, "Location permission is needed to detect your GPS pin.");
+        }
     }
 }

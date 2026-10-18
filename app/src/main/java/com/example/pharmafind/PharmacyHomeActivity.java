@@ -3,8 +3,12 @@ package com.example.pharmafind;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
@@ -33,8 +37,24 @@ public class PharmacyHomeActivity extends AppCompatActivity {
         MaterialButton btnLogout = findViewById(R.id.btnPharmacyLogout);
         BottomNavigationView bottomNav = findViewById(R.id.pharmacyBottomNavigation);
 
+        // Push the header content below the status bar (Android 15+ draws the app behind it).
+        View headerContent = findViewById(R.id.headerContentPharmacy);
+        if (headerContent != null) {
+            int baseTopPadding = headerContent.getPaddingTop();
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+                Insets statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+                headerContent.setPadding(
+                    headerContent.getPaddingLeft(),
+                    baseTopPadding + statusBars.top,
+                    headerContent.getPaddingRight(),
+                    headerContent.getPaddingBottom()
+                );
+                return insets;
+            });
+        }
+
         tvPharmacyWelcome.setText("Welcome, " + sessionManager.getFullName());
-        tvPharmacyLocation.setText("📍 Barangay " + sessionManager.getBarangay() + ", " + sessionManager.getCity());
+        tvPharmacyLocation.setText("Barangay " + sessionManager.getBarangay() + ", " + sessionManager.getCity());
 
         btnLogout.setOnClickListener(v -> {
             sessionManager.logoutUser();
@@ -63,6 +83,7 @@ public class PharmacyHomeActivity extends AppCompatActivity {
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
+                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
                 .replace(R.id.pharmacyFragmentContainer, fragment)
                 .commit();
     }
@@ -74,13 +95,24 @@ public class PharmacyHomeActivity extends AppCompatActivity {
 
             try {
                 Statement stmt = con.createStatement();
-                String query = "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Pharmacies' AND COLUMN_NAME = 'Latitude') " +
-                        "BEGIN " +
-                        "ALTER TABLE dbo.Pharmacies ADD Latitude FLOAT, Longitude FLOAT, OperatingHours NVARCHAR(255), Bio NVARCHAR(MAX) " +
-                        "END";
-                stmt.executeUpdate(query);
+                // Check each column on its own: the old setup script already created Latitude but not
+                // Bio, so a single "is Latitude missing?" check never added the rest.
+                String[] addColumns = {
+                        "Latitude DECIMAL(10, 8) NULL",
+                        "Longitude DECIMAL(11, 8) NULL",
+                        "OperatingHours NVARCHAR(255) NULL",
+                        "Bio NVARCHAR(MAX) NULL"
+                };
+                for (String column : addColumns) {
+                    String name = column.substring(0, column.indexOf(' '));
+                    stmt.executeUpdate("IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Pharmacies' AND COLUMN_NAME = '" + name + "') " +
+                            "ALTER TABLE dbo.Pharmacies ADD " + column);
+                }
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyHomeActivity", "Error adding columns: " + e.getMessage());
             }
         });

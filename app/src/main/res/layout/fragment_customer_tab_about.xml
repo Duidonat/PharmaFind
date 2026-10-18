@@ -26,15 +26,11 @@
                 android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnEditCustomerProfile"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="✏️ Edit Location &amp; Pin"
-                android:textAllCaps="false"
-                android:textColor="@color/primary_teal"
-                android:textSize="12sp"
-                app:strokeColor="@color/primary_teal" />
+                app:icon="@drawable/ic_edit"
+                android:text="Edit Location &amp; Pin" />
 
         </LinearLayout>
 

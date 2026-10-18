@@ -33,10 +33,11 @@
     <EditText
         android:id="@+id/etSearchFeed"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
+        android:layout_height="48dp"
         android:layout_marginTop="12dp"
         android:background="@drawable/edittext_background"
-        android:drawableStart="@android:drawable/ic_menu_search"
+        android:drawableStart="@drawable/ic_search"
+        android:drawableTint="@color/text_gray"
         android:drawablePadding="8dp"
         android:hint="Search medicine name (e.g. Biogesic)..."
         android:inputType="text"
@@ -69,14 +70,14 @@
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🟢 Open Requests" />
+            android:text="Open Requests" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipFulfilled"
             style="@style/Widget.MaterialComponents.Chip.Choice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="✅ Fulfilled" />
+            android:text="Fulfilled" />
 
     </com.google.android.material.chip.ChipGroup>
 
@@ -88,13 +89,38 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/chipGroupFilter" />
 
+    <ProgressBar
+        android:id="@+id/pbFeedLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@color/primary_teal"
+        app:layout_constraintTop_toBottomOf="@id/chipGroupFilter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvFeedEmptyState"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:gravity="center"
+        android:text="No requests found."
+        android:textColor="@color/text_gray"
+        android:textSize="14sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/chipGroupFilter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabPostInquiry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:contentDescription="Post Medicine Request"
-        android:src="@android:drawable/ic_input_add"
+        android:src="@drawable/ic_add"
         app:backgroundTint="@color/primary_teal"
         app:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"

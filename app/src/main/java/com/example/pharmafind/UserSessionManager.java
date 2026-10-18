@@ -17,6 +17,7 @@ public class UserSessionManager {
     private static final String KEY_STATUS = "status"; // for pharmacy 'pending'/'approved'
     private static final String KEY_LATITUDE = "latitude";
     private static final String KEY_LONGITUDE = "longitude";
+    private static final String KEY_REMEMBER_ME = "rememberMe";
 
     private final SharedPreferences pref;
     private final SharedPreferences.Editor editor;
@@ -104,5 +105,25 @@ public class UserSessionManager {
     public void logoutUser() {
         editor.clear();
         editor.apply();
+    }
+
+    // Called once right after login, from the "Remember me" checkbox.
+    public void setRememberMe(boolean remember) {
+        editor.putBoolean(KEY_REMEMBER_ME, remember);
+        editor.apply();
+    }
+
+    // Defaults to true so a session created before this existed stays logged in, same as before.
+    public boolean getRememberMe() {
+        return pref.getBoolean(KEY_REMEMBER_ME, true);
+    }
+
+    // Called once when the app process starts. If the last login had "Remember me" unchecked,
+    // the session should only last until the app is fully closed - log it out here instead of
+    // letting the user land back on their home screen.
+    public void clearIfNotRemembered() {
+        if (isLoggedIn() && !getRememberMe()) {
+            logoutUser();
+        }
     }
 }

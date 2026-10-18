@@ -3,8 +3,31 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="primary_teal">#3A8E9D</color>
-    <color name="primary_dark">#1A5AB8</color>
+    <!-- Dark teal for headers and the login/register sheet backgrounds (was blue #1A5AB8) -->
+    <color name="primary_dark">#1F6371</color>
+    <!-- Light teal for selected/highlighted areas, e.g. the bottom menu's selected item -->
+    <color name="teal_container">#D6EEF1</color>
+    <!-- Decorative circles on the dark teal sheet backgrounds -->
+    <color name="decor_circle_light">#2B7A87</color>
+    <color name="decor_circle_dark">#174D57</color>
+    <!-- Neutral surfaces and outlines. Material 3's defaults are slightly purple, which showed up
+         as a lavender tint on unselected chips and card outlines. -->
+    <color name="on_surface">#1B1F21</color>
+    <color name="surface_variant">#E3EBEC</color>
+    <color name="on_surface_variant">#3F484A</color>
+    <color name="outline">#6F797A</color>
+    <color name="surface_container_low">#F4F8F8</color>
+    <color name="surface_container">#EEF3F4</color>
+    <color name="surface_container_high">#E8EEEF</color>
+    <color name="surface_container_highest">#E2E9EA</color>
     <color name="background_light">#E8F6F8</color>
     <color name="text_gray">#666666</color>
     <color name="divider_color">#DDDDDD</color>
+    <!-- Text field border when not focused -->
+    <!-- Field error text and outline -->
+    <color name="error_red">#B3261E</color>
+    <color name="field_border">#9AA8AA</color>
+    <!-- FULFILLED badge -->
+    <color name="success_container">#E3F3E6</color>
+    <color name="on_success_container">#1E6B30</color>
 </resources>

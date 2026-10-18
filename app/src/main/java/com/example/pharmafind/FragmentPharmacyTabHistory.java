@@ -8,6 +8,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -28,6 +30,8 @@ public class FragmentPharmacyTabHistory extends Fragment {
     private UserSessionManager sessionManager;
     private InquiryAdapter inquiryAdapter;
     private List<InquiryModel> repliedInquiryList;
+    private ProgressBar pbPharmacyHistoryLoading;
+    private TextView tvPharmacyHistoryEmptyState;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -46,6 +50,8 @@ public class FragmentPharmacyTabHistory extends Fragment {
         View view = inflater.inflate(R.layout.fragment_pharmacy_tab_history, container, false);
 
         RecyclerView rvRepliedRequests = view.findViewById(R.id.rvRepliedRequests);
+        pbPharmacyHistoryLoading = view.findViewById(R.id.pbPharmacyHistoryLoading);
+        tvPharmacyHistoryEmptyState = view.findViewById(R.id.tvPharmacyHistoryEmptyState);
         rvRepliedRequests.setLayoutManager(new LinearLayoutManager(getContext()));
         inquiryAdapter = new InquiryAdapter(repliedInquiryList, item -> {
             Intent intent = new Intent(getContext(), ActivityInquiryThread.class);
@@ -54,24 +60,36 @@ public class FragmentPharmacyTabHistory extends Fragment {
         });
         rvRepliedRequests.setAdapter(inquiryAdapter);
 
-        loadRepliedInquiriesFromDB();
-
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload every time this screen becomes visible again (e.g. returning from a
+        // request thread), so reply counts and statuses don't stay stale.
+        loadRepliedInquiriesFromDB();
+    }
+
     private void loadRepliedInquiriesFromDB() {
+        if (pbPharmacyHistoryLoading != null) pbPharmacyHistoryLoading.setVisibility(View.VISIBLE);
+        if (tvPharmacyHistoryEmptyState != null) tvPharmacyHistoryEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showHistoryError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             try {
                 List<InquiryModel> tempInquiries = new ArrayList<>();
-                String query = "SELECT DISTINCT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                String query = "SELECT DISTINCT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r2 WHERE r2.InquiryID = i.InquiryID) AS ReplyCount " +
                         "FROM dbo.Inquiries i " +
                         "INNER JOIN dbo.PharmacyReplies r ON i.InquiryID = r.InquiryID " +
                         "WHERE r.PharmacyID = ? " +
-                        "ORDER BY i.CreatedAt DESC";
+                        "ORDER BY CreatedAtStr DESC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, sessionManager.getUserId());
@@ -83,7 +101,7 @@ public class FragmentPharmacyTabHistory extends Fragment {
                     String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
                     String description = rs.getString("Description");
-                    String imageUrl = rs.getString("ImageUrl");
+                    boolean hasImage = rs.getInt("HasImage") == 1;
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String district = rs.getString("District");
@@ -92,7 +110,7 @@ public class FragmentPharmacyTabHistory extends Fragment {
                     int replyCount = rs.getInt("ReplyCount");
 
                     tempInquiries.add(new InquiryModel(
-                            inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
+                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount
                     ));
                 }
 
@@ -104,12 +122,29 @@ public class FragmentPharmacyTabHistory extends Fragment {
                     if (inquiryAdapter != null) {
                         inquiryAdapter.notifyDataSetChanged();
                     }
+                    if (pbPharmacyHistoryLoading != null) pbPharmacyHistoryLoading.setVisibility(View.GONE);
+                    if (tvPharmacyHistoryEmptyState != null) {
+                        tvPharmacyHistoryEmptyState.setText("You haven't responded to any requests yet.");
+                        tvPharmacyHistoryEmptyState.setVisibility(repliedInquiryList.isEmpty() ? View.VISIBLE : View.GONE);
+                    }
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("PharmacyTabHistory", "Load Replied Inquiries Error: " + e.getMessage());
+                mainHandler.post(() -> showHistoryError("Couldn't load your responses. Please try again."));
             }
         });
+    }
+
+    private void showHistoryError(String message) {
+        if (pbPharmacyHistoryLoading != null) pbPharmacyHistoryLoading.setVisibility(View.GONE);
+        if (tvPharmacyHistoryEmptyState != null) {
+            tvPharmacyHistoryEmptyState.setText(message);
+            tvPharmacyHistoryEmptyState.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -37,7 +38,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Pharmacy Store Name"
+                tools:text="Pharmacy Store Name"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -47,7 +48,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="📍 Barangay Marawoy, Lipa City"
+                android:drawablePadding="6dp"
+                android:drawableStart="@drawable/ic_location_on_16"
+                android:drawableTint="@color/text_gray"
+                tools:text="Barangay Marawoy, Lipa City"
                 android:textColor="@color/text_gray"
                 android:textSize="14sp" />
 

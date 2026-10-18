@@ -11,6 +11,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -39,6 +41,9 @@ public class FragmentPharmacyFeed extends Fragment {
     private String currentSearchQuery = "";
     private String currentStatusFilter = "all";
 
+    private ProgressBar pbPharmacyFeedLoading;
+    private TextView tvPharmacyFeedEmptyState;
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -58,6 +63,8 @@ public class FragmentPharmacyFeed extends Fragment {
 
         etSearchFeed = view.findViewById(R.id.etSearchPharmacyFeed);
         chipGroupFilter = view.findViewById(R.id.chipGroupPharmacyFilter);
+        pbPharmacyFeedLoading = view.findViewById(R.id.pbPharmacyFeedLoading);
+        tvPharmacyFeedEmptyState = view.findViewById(R.id.tvPharmacyFeedEmptyState);
 
         RecyclerView rvInquiries = view.findViewById(R.id.rvPharmacyInquiries);
         rvInquiries.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -97,9 +104,15 @@ public class FragmentPharmacyFeed extends Fragment {
             });
         }
 
-        loadLocalInquiriesFromDB();
-
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Reload every time this screen becomes visible again (e.g. returning from a
+        // request thread), so reply counts and statuses don't stay stale.
+        loadLocalInquiriesFromDB();
     }
 
     private void filterInquiries() {
@@ -126,25 +139,50 @@ public class FragmentPharmacyFeed extends Fragment {
         if (inquiryAdapter != null) {
             inquiryAdapter.notifyDataSetChanged();
         }
+
+        if (tvPharmacyFeedEmptyState != null) {
+            if (displayedInquiriesList.isEmpty()) {
+                tvPharmacyFeedEmptyState.setText("No requests found.");
+                tvPharmacyFeedEmptyState.setVisibility(View.VISIBLE);
+            } else {
+                tvPharmacyFeedEmptyState.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private void showFeedError(String message) {
+        if (pbPharmacyFeedLoading != null) pbPharmacyFeedLoading.setVisibility(View.GONE);
+        if (tvPharmacyFeedEmptyState != null) {
+            tvPharmacyFeedEmptyState.setText(message);
+            tvPharmacyFeedEmptyState.setVisibility(View.VISIBLE);
+        }
     }
 
     private void loadLocalInquiriesFromDB() {
+        if (pbPharmacyFeedLoading != null) pbPharmacyFeedLoading.setVisibility(View.VISIBLE);
+        if (tvPharmacyFeedEmptyState != null) tvPharmacyFeedEmptyState.setVisibility(View.GONE);
+
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
-            if (con == null) return;
+            if (con == null) {
+                mainHandler.post(() -> showFeedError("Couldn't connect. Check your internet and try again."));
+                return;
+            }
 
             try {
                 List<InquiryModel> tempInquiries = new ArrayList<>();
                 String pharmacyBarangay = sessionManager.getBarangay();
                 String pharmacyCity = sessionManager.getCity();
 
-                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, i.ImageUrl, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
                         "FROM dbo.Inquiries i " +
                         "WHERE LOWER(i.Barangay) LIKE '%' + LOWER(?) + '%' " +
                         "   OR LOWER(i.City) LIKE '%' + LOWER(?) + '%' " +
                         "   OR LOWER(?) LIKE '%' + LOWER(i.Barangay) + '%' " +
                         "   OR i.Barangay IS NULL OR i.Barangay = '' OR ? = '' " +
+                        // Match the city both ways too, so "Lipa City" and "Lipa" find each other
+                        "   OR LOWER(?) LIKE '%' + LOWER(i.City) + '%' " +
                         "ORDER BY i.CreatedAt DESC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
@@ -154,6 +192,7 @@ public class FragmentPharmacyFeed extends Fragment {
                 stmt.setString(2, ct);
                 stmt.setString(3, bg);
                 stmt.setString(4, bg);
+                stmt.setString(5, ct);
 
                 ResultSet rs = stmt.executeQuery();
 
@@ -163,7 +202,7 @@ public class FragmentPharmacyFeed extends Fragment {
                     String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
                     String description = rs.getString("Description");
-                    String imageUrl = rs.getString("ImageUrl");
+                    boolean hasImage = rs.getInt("HasImage") == 1;
                     String city = rs.getString("City");
                     String barangay = rs.getString("Barangay");
                     String district = rs.getString("District");
@@ -172,7 +211,7 @@ public class FragmentPharmacyFeed extends Fragment {
                     int replyCount = rs.getInt("ReplyCount");
 
                     tempInquiries.add(new InquiryModel(
-                            inquiryId, customerId, customerName, medicineName, description, imageUrl, city, barangay, district, status, createdAt, replyCount
+                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount
                     ));
                 }
 
@@ -181,11 +220,16 @@ public class FragmentPharmacyFeed extends Fragment {
                 mainHandler.post(() -> {
                     allInquiriesList.clear();
                     allInquiriesList.addAll(tempInquiries);
+                    if (pbPharmacyFeedLoading != null) pbPharmacyFeedLoading.setVisibility(View.GONE);
                     filterInquiries();
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("FragmentPharmacyFeed", "Error loading local inquiries: " + e.getMessage());
+                mainHandler.post(() -> showFeedError("Couldn't load requests. Please try again."));
             }
         });
     }

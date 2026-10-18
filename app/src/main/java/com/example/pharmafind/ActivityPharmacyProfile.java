@@ -28,7 +28,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
     private conSQL sqlHelper;
     private int pharmacyId = -1;
 
-    private TextView tvPharmacyNameTitle, tvPharmacyAddress, tvContactInfo, tvEmailInfo, tvOperatingHours, tvStatusInfo;
+    private TextView tvPharmacyNameTitle, tvPharmacyAddress, tvContactInfo, tvEmailInfo, tvOperatingHours, tvStatusInfo, tvPharmacyVerifiedBadge;
 
     private String fullAddressForMaps = "";
     private String contactPhone = "";
@@ -47,6 +47,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
         pharmacyId = getIntent().getIntExtra("pharmacy_id", -1);
 
         if (pharmacyId == -1) {
+            // Toast, not UiMessage: this screen closes right after, which would take a Snackbar with it.
             Toast.makeText(this, "Pharmacy Not Found", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -71,6 +72,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
         tvEmailInfo = findViewById(R.id.tvEmailInfo);
         tvOperatingHours = findViewById(R.id.tvOperatingHours);
         tvStatusInfo = findViewById(R.id.tvStatusInfo);
+        tvPharmacyVerifiedBadge = findViewById(R.id.tvPharmacyVerifiedBadge);
 
         MaterialButton btnOpenMaps = findViewById(R.id.btnOpenMaps);
         MaterialButton btnCallPharmacy = findViewById(R.id.btnCallPharmacy);
@@ -82,7 +84,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
                 Intent callIntent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + contactPhone));
                 startActivity(callIntent);
             } else {
-                Toast.makeText(this, "No phone number available", Toast.LENGTH_SHORT).show();
+                UiMessage.show(this, "No phone number available");
             }
         });
 
@@ -113,7 +115,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
             }
         } catch (Exception e) {
             Log.e("ActivityPharmacyProfile", "Map Error: " + e.getMessage());
-            Toast.makeText(this, "Could not launch Google Maps", Toast.LENGTH_SHORT).show();
+            UiMessage.show(this, "Could not launch Google Maps");
         }
     }
 
@@ -159,7 +161,7 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
 
                         String addressStr = "Barangay " + finalBarangay + ", " + finalCity;
                         if (!finalDistrict.isEmpty()) addressStr += " (" + finalDistrict + ")";
-                        tvPharmacyAddress.setText("📍 " + addressStr);
+                        tvPharmacyAddress.setText(addressStr);
 
                         fullAddressForMaps = name + " Pharmacy, Barangay " + finalBarangay + ", " + finalCity + ", Philippines";
 
@@ -167,11 +169,18 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
                         tvEmailInfo.setText("Email: " + (email != null ? email : "N/A"));
                         tvOperatingHours.setText("Operating Hours: " + (hours != null && !hours.isEmpty() ? hours : "8:00 AM - 9:00 PM"));
                         tvStatusInfo.setText("Status: " + (status != null ? status.toUpperCase() : "VERIFIED"));
+
+                        if (tvPharmacyVerifiedBadge != null) {
+                            PharmacyReplyAdapter.styleVerificationBadge(tvPharmacyVerifiedBadge, "approved".equalsIgnoreCase(status), "Pending Verification");
+                        }
                     });
                 }
 
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityPharmacyProfile", "Error loading pharmacy: " + e.getMessage());
             }
         });

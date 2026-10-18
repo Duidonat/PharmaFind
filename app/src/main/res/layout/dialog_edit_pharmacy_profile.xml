@@ -24,7 +24,7 @@
         android:layout_height="32dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Close"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:src="@drawable/ic_close"
         app:tint="@color/text_gray"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -102,30 +102,20 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button.Outlined"
                     android:id="@+id/btnOpeningTime"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
                     android:layout_marginEnd="4dp"
                     android:layout_weight="1"
-                    android:text="Opening: 8:00 AM"
-                    android:textAllCaps="false"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
-                    app:strokeColor="@color/text_gray" />
+                    android:text="Opening: 8:00 AM" />
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button.Outlined"
                     android:id="@+id/btnClosingTime"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="44dp"
                     android:layout_marginStart="4dp"
                     android:layout_weight="1"
-                    android:text="Closing: 9:00 PM"
-                    android:textAllCaps="false"
-                    android:textColor="@color/black"
-                    android:textSize="12sp"
-                    app:strokeColor="@color/text_gray" />
+                    android:text="Closing: 9:00 PM" />
 
             </LinearLayout>
 
@@ -181,7 +171,10 @@
                         style="@style/Widget.MaterialComponents.Chip.Choice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📅 Select Date Range"
+                        app:chipIcon="@drawable/ic_event"
+                        app:chipIconSize="16dp"
+                        app:chipIconTint="@color/primary_teal"
+                        android:text="Select Date Range"
                         android:textSize="11sp" />
 
                 </com.google.android.material.chip.ChipGroup>
@@ -214,10 +207,77 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="4dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/edittext_background"
                 android:hint="Phone / Mobile number"
                 android:inputType="phone"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <!-- Store address (same fields the pharmacy filled in when registering) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="City"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etCityEdit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/edittext_background"
+                android:hint="City"
+                android:inputType="text"
+                android:maxLength="100"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Barangay"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etBarangayEdit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/edittext_background"
+                android:hint="Barangay"
+                android:inputType="text"
+                android:maxLength="100"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="District / Purok (optional)"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etDistrictEdit"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/edittext_background"
+                android:hint="District or Purok"
+                android:inputType="text"
+                android:maxLength="100"
                 android:paddingHorizontal="12dp"
                 android:textColor="@color/black"
                 android:textSize="14sp" />
@@ -232,7 +292,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📍 Store Location Pin (Google Maps)"
+                android:drawablePadding="6dp"
+                android:drawableStart="@drawable/ic_location_on_16"
+                android:drawableTint="@color/primary_teal"
+                android:text="Store Location Pin (Google Maps)"
                 android:textColor="@color/black"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -281,37 +344,28 @@
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button.Outlined"
                 android:id="@+id/btnUseCurrentGPSPin"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
                 android:layout_marginTop="8dp"
-                android:text="🎯 Auto-Detect My Current GPS Location Pin"
-                android:textAllCaps="false"
-                android:textColor="@color/primary_teal"
-                app:strokeColor="@color/primary_teal" />
+                app:icon="@drawable/ic_my_location"
+                android:text="Auto-Detect My Current GPS Location Pin" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button.Outlined"
                 android:id="@+id/btnPickPharmacyMap"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
                 android:layout_marginTop="8dp"
-                android:text="🗺️ Pick Store Location Manually on Map"
-                android:textAllCaps="false"
-                android:textColor="@color/primary_teal"
-                app:strokeColor="@color/primary_teal" />
+                app:icon="@drawable/ic_map"
+                android:text="Pick Store Location Manually on Map" />
 
             <!-- Save Profile Button -->
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button"
                 android:id="@+id/btnSavePharmacyProfile"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
                 android:layout_marginTop="20dp"
-                android:text="Save Profile &amp; Location Pin"
-                android:textAllCaps="false"
-                app:backgroundTint="@color/primary_teal"
-                app:cornerRadius="26dp" />
+                android:text="Save Profile &amp; Location Pin" />
 
         </LinearLayout>
     </ScrollView>

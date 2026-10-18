@@ -31,7 +31,7 @@
                 android:backgroundTint="#2E7D32"
                 android:contentDescription="Pharmacy Avatar"
                 android:padding="8dp"
-                android:src="@android:drawable/ic_dialog_map"
+                android:src="@drawable/ic_local_pharmacy"
                 app:tint="@color/white" />
 
             <LinearLayout
@@ -57,10 +57,14 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tvPharmacyVerifiedBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:text="✓ Verified"
+                        android:drawablePadding="3dp"
+                        android:drawableStart="@drawable/ic_verified_14"
+                        android:drawableTint="#2E7D32"
+                        android:text="Verified"
                         android:textColor="#2E7D32"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -81,7 +85,7 @@
                 android:id="@+id/tvAvailabilityBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/edittext_background"
+                android:background="@drawable/bg_badge"
                 android:backgroundTint="#E8F5E9"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
@@ -119,7 +123,7 @@
             android:layout_marginBottom="8dp"
             android:background="@color/divider_color" />
 
-        <!-- Actions Row: View Profile / Map, Call & Accept -->
+        <!-- Actions Row: Call & View Profile / Map -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -127,40 +131,30 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnContact"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:layout_marginEnd="6dp"
-                android:text="📞 Call"
-                android:textAllCaps="false"
-                android:textColor="@color/primary_teal"
-                android:textSize="11sp"
-                app:strokeColor="@color/primary_teal" />
+                android:layout_marginEnd="8dp"
+                app:icon="@drawable/ic_call"
+                android:text="Call" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnViewPharmacyProfile"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:layout_marginEnd="6dp"
-                android:text="📍 Profile &amp; Map"
-                android:textAllCaps="false"
-                android:textColor="@color/primary_teal"
-                android:textSize="11sp"
-                app:strokeColor="@color/primary_teal" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAcceptOffer"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="✅ Select Pharmacy"
-                android:textAllCaps="false"
-                android:textSize="11sp"
-                app:backgroundTint="#2E7D32"
-                app:cornerRadius="19dp" />
+                app:icon="@drawable/ic_location_on"
+                android:text="Profile &amp; Map" />
 
         </LinearLayout>
+
+        <!-- Main action on its own full-width row (only shown to the request owner) -->
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.PharmaFind.Button.Small.Filled"
+            android:id="@+id/btnAcceptOffer"
+            android:layout_width="match_parent"
+            android:layout_marginTop="8dp"
+            app:icon="@drawable/ic_check_circle"
+            android:text="Select Pharmacy" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -4,11 +4,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
@@ -56,6 +59,17 @@ public class ActivityChat extends AppCompatActivity {
 
         ImageButton btnBack = findViewById(R.id.btnBackChat);
         btnBack.setOnClickListener(v -> finish());
+
+        // Push the toolbar below the status bar (Android 15+ draws the app behind it).
+        View toolbar = findViewById(R.id.toolbarChat);
+        if (toolbar != null) {
+            int baseTopPadding = toolbar.getPaddingTop();
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+                Insets statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+                toolbar.setPadding(toolbar.getPaddingLeft(), baseTopPadding + statusBars.top, toolbar.getPaddingRight(), toolbar.getPaddingBottom());
+                return insets;
+            });
+        }
 
         TextView tvChatPartnerName = findViewById(R.id.tvChatPartnerName);
         tvChatPartnerName.setText(receiverName);
@@ -105,6 +119,9 @@ public class ActivityChat extends AppCompatActivity {
                 stmt.executeUpdate(query);
                 con.close();
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityChat", "Error creating Messages table: " + e.getMessage());
             }
         });
@@ -153,6 +170,9 @@ public class ActivityChat extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityChat", "Error loading messages: " + e.getMessage());
             }
         });
@@ -162,7 +182,7 @@ public class ActivityChat extends AppCompatActivity {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) {
-                mainHandler.post(() -> Toast.makeText(ActivityChat.this, "Database connection error", Toast.LENGTH_SHORT).show());
+                mainHandler.post(() -> UiMessage.show(ActivityChat.this, "Database connection error"));
                 return;
             }
 
@@ -187,6 +207,9 @@ public class ActivityChat extends AppCompatActivity {
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("ActivityChat", "Error sending message: " + e.getMessage());
             }
         });

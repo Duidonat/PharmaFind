@@ -2,11 +2,16 @@ package com.example.pharmafind;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -14,6 +19,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
@@ -51,15 +57,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         EdgeToEdge.enable(this);
+        // This screen is light, so use dark status/navigation bar icons. Otherwise they follow the
+        // phone's dark mode and turn white, disappearing against the light background.
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView()).setAppearanceLightStatusBars(true);
+        WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView()).setAppearanceLightNavigationBars(true);
         setContentView(R.layout.activity_main);
 
         sqlHelper = new conSQL();
 
         View mainView = findViewById(R.id.main);
         if (mainView != null) {
+            // Keep the layout's own padding (24dp) and add the status/navigation bar space on top of it.
+            // Replacing it outright left the buttons touching the screen edges.
+            int basePadding = mainView.getPaddingLeft();
             ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
                 Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                v.setPadding(basePadding + systemBars.left, basePadding + systemBars.top, basePadding + systemBars.right, basePadding + systemBars.bottom);
                 return insets;
             });
         }
@@ -87,7 +100,16 @@ public class MainActivity extends AppCompatActivity {
         EditText etUsername = dialogView.findViewById(R.id.etUsername);
         EditText etPassword = dialogView.findViewById(R.id.etPassword);
         android.widget.CheckBox cbShowPassword = dialogView.findViewById(R.id.cbShowPassword);
+        android.widget.CheckBox cbRememberMe = dialogView.findViewById(R.id.cbRememberMe);
         MaterialButton btnLoginSubmit = dialogView.findViewById(R.id.btnLoginSubmit);
+        TextView tvForgotPassword = dialogView.findViewById(R.id.tvForgotPassword);
+
+        if (tvForgotPassword != null) {
+            tvForgotPassword.setOnClickListener(v -> {
+                bottomSheetDialog.dismiss();
+                showResetPasswordDialog();
+            });
+        }
 
         if (cbShowPassword != null && etPassword != null) {
             cbShowPassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -106,13 +128,15 @@ public class MainActivity extends AppCompatActivity {
                 String password = etPassword != null ? etPassword.getText().toString().trim() : "";
 
                 if (username.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(bottomSheetDialog, "Please enter username and password");
                     return;
                 }
 
+                boolean rememberMe = cbRememberMe != null && cbRememberMe.isChecked();
+
                 btnLoginSubmit.setEnabled(false);
-                Toast.makeText(this, "Logging in...", Toast.LENGTH_SHORT).show();
-                performLogin(username, password, bottomSheetDialog, btnLoginSubmit);
+                UiMessage.show(bottomSheetDialog, "Logging in...");
+                performLogin(username, password, rememberMe, bottomSheetDialog, btnLoginSubmit);
             });
         }
 
@@ -124,13 +148,13 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
-    private void performLogin(String username, String password, BottomSheetDialog dialog, MaterialButton btnSubmit) {
+    private void performLogin(String username, String password, boolean rememberMe, BottomSheetDialog dialog, MaterialButton btnSubmit) {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Failed to connect to database. Please check connection.", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Failed to connect to database. Please check connection.");
                 });
                 return;
             }
@@ -154,10 +178,12 @@ public class MainActivity extends AppCompatActivity {
                     if (district == null) district = "";
 
                     sessionManager.createCustomerSession(id, username, name, city, barangay, district);
+                    sessionManager.setRememberMe(rememberMe);
 
                     con.close();
 
                     mainHandler.post(() -> {
+                        // Toast, not UiMessage: this screen closes right after, which would take a Snackbar with it.
                         Toast.makeText(MainActivity.this, "Welcome Customer: " + name, Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                         Intent intent = new Intent(MainActivity.this, CustomerHomeActivity.class);
@@ -187,10 +213,12 @@ public class MainActivity extends AppCompatActivity {
                     if (status == null) status = "pending";
 
                     sessionManager.createPharmacySession(id, username, name, city, barangay, district, status);
+                    sessionManager.setRememberMe(rememberMe);
 
                     con.close();
 
                     mainHandler.post(() -> {
+                        // Toast, not UiMessage: this screen closes right after, which would take a Snackbar with it.
                         Toast.makeText(MainActivity.this, "Welcome Pharmacy: " + name, Toast.LENGTH_SHORT).show();
                         dialog.dismiss();
                         Intent intent = new Intent(MainActivity.this, PharmacyHomeActivity.class);
@@ -204,14 +232,143 @@ public class MainActivity extends AppCompatActivity {
 
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Invalid Username or Password", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Invalid Username or Password");
                 });
 
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("MainActivity", "Login Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Error: " + e.getMessage());
+                });
+            }
+        });
+    }
+
+    private void showResetPasswordDialog() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_reset_password, null);
+        bottomSheetDialog.setContentView(dialogView);
+
+        EditText etResetUsername = dialogView.findViewById(R.id.etResetUsername);
+        EditText etResetEmail = dialogView.findViewById(R.id.etResetEmail);
+        EditText etResetNewPassword = dialogView.findViewById(R.id.etResetNewPassword);
+        EditText etResetConfirmPassword = dialogView.findViewById(R.id.etResetConfirmPassword);
+        MaterialButton btnSubmitReset = dialogView.findViewById(R.id.btnSubmitReset);
+
+        if (btnSubmitReset != null) {
+            btnSubmitReset.setOnClickListener(v -> {
+                String username = etResetUsername.getText().toString().trim();
+                String email = etResetEmail.getText().toString().trim();
+                String newPassword = etResetNewPassword.getText().toString().trim();
+                String confirmPassword = etResetConfirmPassword.getText().toString().trim();
+
+                if (username.isEmpty() || email.isEmpty() || newPassword.isEmpty()) {
+                    UiMessage.show(bottomSheetDialog, "Please fill in all fields");
+                    return;
+                }
+
+                if (!newPassword.equals(confirmPassword)) {
+                    UiMessage.show(bottomSheetDialog, "Passwords do not match");
+                    return;
+                }
+
+                btnSubmitReset.setEnabled(false);
+                UiMessage.show(bottomSheetDialog, "Checking your details...");
+                resetPassword(username, email, newPassword, bottomSheetDialog, btnSubmitReset);
+            });
+        }
+
+        View parent = (View) dialogView.getParent();
+        if (parent != null) {
+            parent.setBackgroundResource(android.R.color.transparent);
+        }
+
+        bottomSheetDialog.show();
+    }
+
+    private void resetPassword(String username, String email, String newPassword, BottomSheetDialog dialog, MaterialButton btnSubmit) {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) {
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    UiMessage.show(dialog, "Failed to connect to database. Please check connection.");
+                });
+                return;
+            }
+
+            try {
+                // Check Customers table first (same order as login)
+                String findCustomerQuery = "SELECT CustomerID FROM dbo.Customers WHERE Username = ? AND Email = ?";
+                PreparedStatement findCustomerStmt = con.prepareStatement(findCustomerQuery);
+                findCustomerStmt.setString(1, username);
+                findCustomerStmt.setString(2, email);
+                ResultSet customerRs = findCustomerStmt.executeQuery();
+
+                if (customerRs.next()) {
+                    int id = customerRs.getInt("CustomerID");
+                    String updateQuery = "UPDATE dbo.Customers SET Password = ? WHERE CustomerID = ?";
+                    PreparedStatement updateStmt = con.prepareStatement(updateQuery);
+                    updateStmt.setString(1, newPassword);
+                    updateStmt.setInt(2, id);
+                    updateStmt.executeUpdate();
+
+                    con.close();
+
+                    mainHandler.post(() -> {
+                        // Toast, not UiMessage: another sheet opens right after, which would hide a Snackbar.
+                        Toast.makeText(MainActivity.this, "Password reset! Please log in with your new password.", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                        showLoginDialog();
+                    });
+                    return;
+                }
+
+                // Check Pharmacies table
+                String findPharmacyQuery = "SELECT PharmacyID FROM dbo.Pharmacies WHERE Username = ? AND Email = ?";
+                PreparedStatement findPharmacyStmt = con.prepareStatement(findPharmacyQuery);
+                findPharmacyStmt.setString(1, username);
+                findPharmacyStmt.setString(2, email);
+                ResultSet pharmacyRs = findPharmacyStmt.executeQuery();
+
+                if (pharmacyRs.next()) {
+                    int id = pharmacyRs.getInt("PharmacyID");
+                    String updateQuery = "UPDATE dbo.Pharmacies SET Password = ? WHERE PharmacyID = ?";
+                    PreparedStatement updateStmt = con.prepareStatement(updateQuery);
+                    updateStmt.setString(1, newPassword);
+                    updateStmt.setInt(2, id);
+                    updateStmt.executeUpdate();
+
+                    con.close();
+
+                    mainHandler.post(() -> {
+                        // Toast, not UiMessage: another sheet opens right after, which would hide a Snackbar.
+                        Toast.makeText(MainActivity.this, "Password reset! Please log in with your new password.", Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                        showLoginDialog();
+                    });
+                    return;
+                }
+
+                con.close();
+
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    UiMessage.showLong(dialog, "We couldn't verify those details. Check your username and email.");
+                });
+
+            } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
+                Log.e("MainActivity", "Reset Password Error: " + e.getMessage());
+                mainHandler.post(() -> {
+                    if (btnSubmit != null) btnSubmit.setEnabled(true);
+                    UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
             }
         });
@@ -271,6 +428,8 @@ public class MainActivity extends AppCompatActivity {
         EditText etConfirmPassword = dialogView.findViewById(R.id.etConfirmPassword);
         MaterialButton btnSubmit = dialogView.findViewById(R.id.btnSubmitRegisterPharmacy);
 
+        clearErrorsWhileTyping(etPharmacyName, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
+
         btnSubmit.setOnClickListener(v -> {
             String pharmacyName = etPharmacyName.getText().toString().trim();
             String city = etCity.getText().toString().trim();
@@ -282,13 +441,19 @@ public class MainActivity extends AppCompatActivity {
             String password = etPassword.getText().toString().trim();
             String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-            if (!password.equals(confirmPassword)) {
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            boolean valid = true;
+            valid &= checkRequired(etPharmacyName, pharmacyName, "Enter the pharmacy name");
+            valid &= checkRequired(etCity, city, "Enter your city");
+            valid &= checkRequired(etBarangay, barangay, "Enter your barangay");
+            valid &= checkContactAndAccount(etEmail, etContact, etUsername, etPassword, etConfirmPassword, email, contact, username, password, confirmPassword);
+            if (!valid) {
+                UiMessage.show(bottomSheetDialog, "Please fix the highlighted fields");
+                scrollToFirstError(etPharmacyName, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
                 return;
             }
 
             btnSubmit.setEnabled(false);
-            Toast.makeText(this, "Registering Pharmacy...", Toast.LENGTH_SHORT).show();
+            UiMessage.show(bottomSheetDialog, "Registering Pharmacy...");
             registerPharmacy(pharmacyName, city, barangay, district, email, contact, username, password, bottomSheetDialog, btnSubmit);
         });
 
@@ -306,7 +471,7 @@ public class MainActivity extends AppCompatActivity {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Database Connection Failed.", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Database Connection Failed.");
                 });
                 return;
             }
@@ -328,18 +493,21 @@ public class MainActivity extends AppCompatActivity {
 
                 mainHandler.post(() -> {
                     if (rows > 0) {
-                        Toast.makeText(MainActivity.this, "Pharmacy Registration Successful! Pending admin verification.", Toast.LENGTH_LONG).show();
+                        UiMessage.showLong(MainActivity.this, "Pharmacy Registration Successful! Pending admin verification.");
                         dialog.dismiss();
                     } else {
                         if (btnSubmit != null) btnSubmit.setEnabled(true);
-                        Toast.makeText(MainActivity.this, "Registration failed.", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialog, "Registration failed.");
                     }
                 });
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("MainActivity", "Register Pharmacy Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.showLong(dialog, isDuplicateKeyError(e) ? "That username or email is already registered. Try another one." : "Error: " + e.getMessage());
                 });
             }
         });
@@ -385,6 +553,8 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        clearErrorsWhileTyping(etFirstName, etSurname, etAge, etBirthDate, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
+
         btnSubmit.setOnClickListener(v -> {
             String firstName = etFirstName.getText().toString().trim();
             String surname = etSurname.getText().toString().trim();
@@ -400,15 +570,24 @@ public class MainActivity extends AppCompatActivity {
             String password = etPassword.getText().toString().trim();
             String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-            if (!password.equals(confirmPassword)) {
-                Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show();
+            boolean valid = true;
+            valid &= checkRequired(etFirstName, firstName, "Enter your first name");
+            valid &= checkRequired(etSurname, surname, "Enter your surname");
+            valid &= checkAge(etAge, ageStr);
+            valid &= checkRequired(etBirthDate, birthDate, "Pick your birth date");
+            valid &= checkRequired(etCity, city, "Enter your city");
+            valid &= checkRequired(etBarangay, barangay, "Enter your barangay");
+            valid &= checkContactAndAccount(etEmail, etContact, etUsername, etPassword, etConfirmPassword, email, contact, username, password, confirmPassword);
+            if (!valid) {
+                UiMessage.show(bottomSheetDialog, "Please fix the highlighted fields");
+                scrollToFirstError(etFirstName, etSurname, etAge, etBirthDate, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
                 return;
             }
 
-            int age = ageStr.isEmpty() ? 0 : Integer.parseInt(ageStr);
+            int age = Integer.parseInt(ageStr);
 
             btnSubmit.setEnabled(false);
-            Toast.makeText(this, "Registering Customer...", Toast.LENGTH_SHORT).show();
+            UiMessage.show(bottomSheetDialog, "Registering Customer...");
             registerCustomer(firstName, surname, middleInitial, city, barangay, district, age, birthDate, email, contact, username, password, bottomSheetDialog, btnSubmit);
         });
 
@@ -426,7 +605,7 @@ public class MainActivity extends AppCompatActivity {
             if (con == null) {
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Database Connection Failed.", Toast.LENGTH_SHORT).show();
+                    UiMessage.show(dialog, "Database Connection Failed.");
                 });
                 return;
             }
@@ -452,21 +631,132 @@ public class MainActivity extends AppCompatActivity {
 
                 mainHandler.post(() -> {
                     if (rows > 0) {
-                        Toast.makeText(MainActivity.this, "Customer Registration Successful!", Toast.LENGTH_LONG).show();
+                        UiMessage.showLong(MainActivity.this, "Customer Registration Successful!");
                         dialog.dismiss();
                     } else {
                         if (btnSubmit != null) btnSubmit.setEnabled(true);
-                        Toast.makeText(MainActivity.this, "Registration failed.", Toast.LENGTH_SHORT).show();
+                        UiMessage.show(dialog, "Registration failed.");
                     }
                 });
             } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
                 Log.e("MainActivity", "Register Customer Error: " + e.getMessage());
                 mainHandler.post(() -> {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
-                    Toast.makeText(MainActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    UiMessage.showLong(dialog, isDuplicateKeyError(e) ? "That username or email is already registered. Try another one." : "Error: " + e.getMessage());
                 });
             }
         });
+    }
+
+    // Shows a red message under a field (the hidden TextView that follows it in the form) and a red outline.
+    private void setFieldError(EditText field, String message) {
+        if (field == null) return;
+        field.setActivated(message != null);
+        ViewGroup parent = (ViewGroup) field.getParent();
+        View next = parent.getChildAt(parent.indexOfChild(field) + 1);
+        if (next instanceof TextView && "fieldError".equals(next.getTag())) {
+            ((TextView) next).setText(message != null ? message : "");
+            next.setVisibility(message != null ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    // Removes a field's error as soon as the user starts fixing it.
+    private void clearErrorsWhileTyping(EditText... fields) {
+        for (EditText field : fields) {
+            if (field == null) continue;
+            field.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (field.isActivated()) setFieldError(field, null);
+                }
+            });
+        }
+    }
+
+    // Scrolls the form so the first field with an error (and its message) is on screen.
+    private void scrollToFirstError(EditText... fields) {
+        for (EditText field : fields) {
+            if (field != null && field.isActivated()) {
+                field.post(() -> field.requestRectangleOnScreen(new Rect(0, 0, field.getWidth(), field.getHeight() + 80), false));
+                return;
+            }
+        }
+    }
+
+    private boolean checkRequired(EditText field, String value, String message) {
+        setFieldError(field, value.isEmpty() ? message : null);
+        return !value.isEmpty();
+    }
+
+    private boolean checkAge(EditText field, String ageStr) {
+        String error = null;
+        if (ageStr.isEmpty()) {
+            error = "Enter your age";
+        } else {
+            try {
+                int age = Integer.parseInt(ageStr);
+                if (age < 1 || age > 120) error = "Enter a valid age";
+            } catch (NumberFormatException e) {
+                error = "Enter a valid age";
+            }
+        }
+        setFieldError(field, error);
+        return error == null;
+    }
+
+    // Email, contact number, username and password (with confirmation): same rules for customers and pharmacies.
+    private boolean checkContactAndAccount(EditText etEmail, EditText etContact, EditText etUsername, EditText etPassword, EditText etConfirmPassword,
+                                           String email, String contact, String username, String password, String confirmPassword) {
+        boolean ok = true;
+
+        String emailError = null;
+        if (email.isEmpty()) emailError = "Enter your email";
+        else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) emailError = "Enter a valid email address";
+        setFieldError(etEmail, emailError);
+        ok &= emailError == null;
+
+        int digits = contact.replaceAll("[^0-9]", "").length();
+        String contactError = null;
+        if (contact.isEmpty()) contactError = "Enter your contact number";
+        else if (!contact.matches("[0-9+\\-\\s()]+") || digits < 7 || digits > 15) contactError = "Enter a valid phone number";
+        setFieldError(etContact, contactError);
+        ok &= contactError == null;
+
+        String usernameError = null;
+        if (username.isEmpty()) usernameError = "Choose a username";
+        else if (username.length() < 4) usernameError = "Use at least 4 characters";
+        else if (username.matches(".*\\s.*")) usernameError = "Spaces aren't allowed";
+        setFieldError(etUsername, usernameError);
+        ok &= usernameError == null;
+
+        String passwordError = null;
+        if (password.isEmpty()) passwordError = "Choose a password";
+        else if (password.length() < 6) passwordError = "Use at least 6 characters";
+        setFieldError(etPassword, passwordError);
+        ok &= passwordError == null;
+
+        String confirmError = null;
+        if (confirmPassword.isEmpty()) confirmError = "Re-enter your password";
+        else if (!confirmPassword.equals(password)) confirmError = "Passwords do not match";
+        setFieldError(etConfirmPassword, confirmError);
+        ok &= confirmError == null;
+
+        return ok;
+    }
+
+    // SQL Server error 2627/2601 = a UNIQUE constraint was hit (username or email already exists).
+    private boolean isDuplicateKeyError(SQLException e) {
+        return e.getErrorCode() == 2627 || e.getErrorCode() == 2601
+                || (e.getMessage() != null && e.getMessage().toLowerCase(Locale.US).contains("duplicate key"));
     }
 
     @Override

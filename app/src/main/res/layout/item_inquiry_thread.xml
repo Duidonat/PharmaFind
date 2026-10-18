@@ -29,7 +29,7 @@
                 android:backgroundTint="@color/primary_teal"
                 android:contentDescription="User Avatar"
                 android:padding="8dp"
-                android:src="@android:drawable/ic_menu_myplaces"
+                android:src="@drawable/ic_person"
                 app:tint="@color/white" />
 
             <LinearLayout
@@ -62,11 +62,12 @@
                 android:id="@+id/tvStatusBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/edittext_background"
-                android:paddingHorizontal="8dp"
+                android:background="@drawable/bg_badge"
+                android:backgroundTint="@color/teal_container"
+                android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp"
                 android:text="OPEN"
-                android:textColor="@color/primary_teal"
+                android:textColor="@color/primary_dark"
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
@@ -92,15 +93,20 @@
             android:textColor="@color/black"
             android:textSize="14sp" />
 
-        <!-- Optional Image Attachment -->
-        <ImageView
-            android:id="@+id/ivInquiryImage"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="12dp"
-            android:scaleType="centerCrop"
-            android:visibility="gone"
-            android:contentDescription="Prescription or packaging photo" />
+        <!-- Photo Attachment Indicator (the photo itself only shows on the request screen,
+             and only to the requester and pharmacies) -->
+        <TextView
+            android:id="@+id/tvPhotoAttached"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:drawablePadding="4dp"
+            android:drawableStart="@drawable/ic_attach_file_14"
+            android:drawableTint="@color/text_gray"
+            android:text="Photo attached"
+            android:textColor="@color/text_gray"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
         <View
             android:layout_width="match_parent"
@@ -121,7 +127,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="💬 0 Pharmacy Responses"
+                android:drawablePadding="6dp"
+                android:drawableStart="@drawable/ic_chat_bubble_outline_16"
+                android:drawableTint="@color/text_gray"
+                android:text="0 Pharmacy Responses"
                 android:textColor="@color/text_gray"
                 android:textSize="13sp" />
 
@@ -130,7 +139,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="View Thread"
+                android:text="View Request"
                 android:textColor="@color/primary_teal"
                 android:textSize="12sp" />
 

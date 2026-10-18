@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light"
+    android:clipToPadding="false"
     android:padding="24dp"
     tools:context=".MainActivity">
 
@@ -56,27 +57,19 @@
 
     <!-- Top Navigation -->
     <com.google.android.material.button.MaterialButton
+        style="@style/Widget.PharmaFind.Button.Small.Filled"
         android:id="@+id/btnRegister"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:text="@string/register"
-        android:textAllCaps="false"
-        android:textColor="@color/white"
-        app:cornerRadius="20dp"
-        app:backgroundTint="@color/primary_teal"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.button.MaterialButton
+        style="@style/Widget.PharmaFind.Button.Small.Filled"
         android:id="@+id/btnLoginTop"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:text="@string/log_in"
-        android:textAllCaps="false"
-        android:textColor="@color/white"
         android:layout_marginEnd="12dp"
-        app:cornerRadius="20dp"
-        app:backgroundTint="@color/primary_teal"
         app:layout_constraintTop_toTopOf="@+id/btnRegister"
         app:layout_constraintBottom_toBottomOf="@+id/btnRegister"
         app:layout_constraintEnd_toStartOf="@+id/btnRegister" />
@@ -138,15 +131,11 @@
 
     <!-- Bottom Section -->
     <com.google.android.material.button.MaterialButton
+        style="@style/Widget.PharmaFind.Button"
         android:id="@+id/btnGetStarted"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
         android:layout_marginBottom="24dp"
         android:text="@string/get_started"
-        android:textAllCaps="false"
-        android:textSize="18sp"
-        app:cornerRadius="30dp"
-        app:backgroundTint="@color/primary_teal"
         app:layout_constraintBottom_toTopOf="@id/llFooter" />
 
     <LinearLayout

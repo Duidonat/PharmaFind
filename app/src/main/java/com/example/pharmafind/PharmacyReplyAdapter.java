@@ -1,10 +1,12 @@
 package com.example.pharmafind;
 
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.widget.TextViewCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import java.util.List;
@@ -13,6 +15,9 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
 
     private final List<PharmacyReplyModel> replyList;
     private final OnReplyActionListener listener;
+    // Only the customer who posted this inquiry is allowed to select a pharmacy's offer.
+    // Defaults to false (hidden) until the Activity confirms ownership.
+    private boolean canSelectPharmacy = false;
 
     public interface OnReplyActionListener {
         void onViewProfileClick(PharmacyReplyModel reply);
@@ -24,6 +29,11 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
     public PharmacyReplyAdapter(List<PharmacyReplyModel> replyList, OnReplyActionListener listener) {
         this.replyList = replyList;
         this.listener = listener;
+    }
+
+    public void setCanSelectPharmacy(boolean canSelectPharmacy) {
+        this.canSelectPharmacy = canSelectPharmacy;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -38,6 +48,10 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
         PharmacyReplyModel reply = replyList.get(position);
 
         holder.tvPharmacyName.setText(reply.getPharmacyName() != null ? reply.getPharmacyName() : "Pharmacy");
+
+        if (holder.tvPharmacyVerifiedBadge != null) {
+            styleVerificationBadge(holder.tvPharmacyVerifiedBadge, "approved".equalsIgnoreCase(reply.getPharmacyStatus()), "Pending");
+        }
 
         String locationDate = "";
         if (reply.getPharmacyBarangay() != null && !reply.getPharmacyBarangay().isEmpty()) {
@@ -89,10 +103,25 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
         });
 
         if (holder.btnAcceptOffer != null) {
-            holder.btnAcceptOffer.setOnClickListener(v -> {
-                if (listener != null) listener.onAcceptOfferClick(reply);
-            });
+            if (canSelectPharmacy) {
+                holder.btnAcceptOffer.setVisibility(View.VISIBLE);
+                holder.btnAcceptOffer.setOnClickListener(v -> {
+                    if (listener != null) listener.onAcceptOfferClick(reply);
+                });
+            } else {
+                holder.btnAcceptOffer.setVisibility(View.GONE);
+            }
         }
+    }
+
+    // Green "Verified" with a check badge, or amber "Pending" with an hourglass. Also used by
+    // ActivityPharmacyProfile so the badge looks the same on both screens.
+    static void styleVerificationBadge(TextView badge, boolean verified, String pendingLabel) {
+        int color = android.graphics.Color.parseColor(verified ? "#2E7D32" : "#F57C00");
+        badge.setText(verified ? "Verified" : pendingLabel);
+        badge.setTextColor(color);
+        badge.setCompoundDrawablesRelativeWithIntrinsicBounds(verified ? R.drawable.ic_verified_14 : R.drawable.ic_hourglass_empty_14, 0, 0, 0);
+        TextViewCompat.setCompoundDrawableTintList(badge, ColorStateList.valueOf(color));
     }
 
     @Override
@@ -101,7 +130,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
     }
 
     static class ReplyViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPharmacyName, tvPharmacyLocationDate, tvAvailabilityBadge, tvPrice, tvNote;
+        TextView tvPharmacyName, tvPharmacyLocationDate, tvAvailabilityBadge, tvPrice, tvNote, tvPharmacyVerifiedBadge;
         MaterialButton btnContact, btnViewPharmacyProfile, btnAcceptOffer;
 
         public ReplyViewHolder(@NonNull View itemView) {
@@ -109,6 +138,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
             tvPharmacyName = itemView.findViewById(R.id.tvPharmacyName);
             tvPharmacyLocationDate = itemView.findViewById(R.id.tvPharmacyLocationDate);
             tvAvailabilityBadge = itemView.findViewById(R.id.tvAvailabilityBadge);
+            tvPharmacyVerifiedBadge = itemView.findViewById(R.id.tvPharmacyVerifiedBadge);
             tvPrice = itemView.findViewById(R.id.tvPrice);
             tvNote = itemView.findViewById(R.id.tvNote);
             btnContact = itemView.findViewById(R.id.btnContact);

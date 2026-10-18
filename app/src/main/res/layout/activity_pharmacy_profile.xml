@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light">
@@ -21,7 +22,7 @@
         android:background="@drawable/circle_background"
         android:backgroundTint="#80000000"
         android:contentDescription="Back"
-        android:src="@android:drawable/ic_menu_revert"
+        android:src="@drawable/ic_arrow_back"
         app:tint="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -38,7 +39,7 @@
         android:contentDescription="Pharmacy Avatar"
         android:elevation="4dp"
         android:padding="16dp"
-        android:src="@android:drawable/ic_dialog_map"
+        android:src="@drawable/ic_local_pharmacy"
         app:tint="@color/white"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/coverHeader" />
@@ -67,16 +68,20 @@
                     android:id="@+id/tvPharmacyNameTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pharmacy Name"
+                    tools:text="Pharmacy Name"
                     android:textColor="@color/black"
                     android:textSize="22sp"
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvPharmacyVerifiedBadge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="✓ Verified"
+                    android:drawablePadding="4dp"
+                    android:drawableStart="@drawable/ic_verified_14"
+                    android:drawableTint="#2E7D32"
+                    android:text="Verified"
                     android:textColor="#2E7D32"
                     android:textSize="12sp"
                     android:textStyle="bold" />
@@ -88,7 +93,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="📍 Barangay Marawoy, Lipa City"
+                android:drawablePadding="6dp"
+                android:drawableStart="@drawable/ic_location_on_16"
+                android:drawableTint="@color/text_gray"
+                tools:text="Barangay Marawoy, Lipa City"
                 android:textColor="@color/text_gray"
                 android:textSize="14sp" />
 
@@ -100,28 +108,22 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button"
                     android:id="@+id/btnOpenMaps"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
                     android:layout_marginEnd="6dp"
                     android:layout_weight="1"
-                    android:text="🗺️ View Map Location"
-                    android:textAllCaps="false"
-                    app:backgroundTint="@color/primary_teal"
-                    app:cornerRadius="26dp" />
+                    app:icon="@drawable/ic_map"
+                    android:text="View Map Location" />
 
                 <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button.Outlined"
                     android:id="@+id/btnCallPharmacy"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
                     android:layout_marginStart="6dp"
                     android:layout_weight="1"
-                    android:text="📞 Call Store"
-                    android:textAllCaps="false"
-                    android:textColor="@color/primary_teal"
-                    app:cornerRadius="26dp"
-                    app:strokeColor="@color/primary_teal" />
+                    app:icon="@drawable/ic_call"
+                    android:text="Call Store" />
 
             </LinearLayout>
 

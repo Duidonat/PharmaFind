@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_light">
@@ -11,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="56dp"
-        android:background="@color/white"
+        android:background="@color/primary_dark"
         android:elevation="2dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
@@ -24,15 +25,15 @@
             android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="@color/black" />
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/white" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="Inquiry Thread"
-            android:textColor="@color/black"
+            android:text="Request Details"
+            android:textColor="@color/white"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -81,7 +82,7 @@
                             android:backgroundTint="@color/primary_teal"
                             android:contentDescription="User Avatar"
                             android:padding="8dp"
-                            android:src="@android:drawable/ic_menu_myplaces"
+                            android:src="@drawable/ic_person"
                             app:tint="@color/white" />
 
                         <LinearLayout
@@ -95,7 +96,7 @@
                                 android:id="@+id/tvCustomerName"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Customer Name"
+                                tools:text="Customer Name"
                                 android:textColor="@color/black"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -104,7 +105,7 @@
                                 android:id="@+id/tvLocationAndDate"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Barangay Marawoy • Just now"
+                                tools:text="Barangay Marawoy • Just now"
                                 android:textColor="@color/text_gray"
                                 android:textSize="12sp" />
 
@@ -114,11 +115,12 @@
                             android:id="@+id/tvStatusBadge"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/edittext_background"
-                            android:paddingHorizontal="8dp"
+                            android:background="@drawable/bg_badge"
+                            android:backgroundTint="@color/teal_container"
+                            android:paddingHorizontal="10dp"
                             android:paddingVertical="4dp"
                             android:text="OPEN"
-                            android:textColor="@color/primary_teal"
+                            android:textColor="@color/primary_dark"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -129,7 +131,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="Medicine Name"
+                        tools:text="Medicine Name"
                         android:textColor="@color/black"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -139,7 +141,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Description details..."
+                        tools:text="Description details..."
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -152,6 +154,20 @@
                         android:scaleType="centerCrop"
                         android:visibility="gone" />
 
+                    <!-- Shown instead of the photo to anyone who isn't the requester or a pharmacy -->
+                    <TextView
+                        android:id="@+id/tvPhotoRestricted"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:drawablePadding="8dp"
+                        android:drawableStart="@drawable/ic_lock_16"
+                        android:drawableTint="@color/text_gray"
+                        android:text="A photo is attached. Only the requester and pharmacies can view it."
+                        android:textColor="@color/text_gray"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
@@ -162,7 +178,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                android:text="💬 Pharmacy Responses"
+                android:drawablePadding="8dp"
+                android:drawableStart="@drawable/ic_forum_20"
+                android:drawableTint="@color/primary_teal"
+                android:text="Pharmacy Responses"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -172,6 +191,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false" />
+
+            <ProgressBar
+                android:id="@+id/pbRepliesLoading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="12dp"
+                android:indeterminateTint="@color/primary_teal" />
+
+            <TextView
+                android:id="@+id/tvRepliesEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="No pharmacy responses yet."
+                android:textColor="@color/text_gray"
+                android:textSize="14sp"
+                android:visibility="gone" />
 
         </LinearLayout>
     </ScrollView>
@@ -194,24 +232,23 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pharmacy Reply"
+                android:textColor="@color/black"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Pharmacy Reply"
-                    android:textColor="@color/black"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
                     android:scrollbars="none">
 
                     <com.google.android.material.chip.ChipGroup
@@ -251,48 +288,42 @@
 
             </LinearLayout>
 
-            <LinearLayout
+            <EditText
+                android:id="@+id/etReplyPrice"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/edittext_background"
+                android:hint="Price (e.g. ₱8.00)"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/black"
+                android:textColorHint="@color/text_gray"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/etReplyNote"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/etReplyPrice"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/edittext_background"
-                    android:hint="Price (e.g. ₱8.00)"
-                    android:paddingHorizontal="10dp"
-                    android:textColor="@color/black"
-                    android:textColorHint="@color/text_gray"
-                    android:textSize="13sp" />
-
-                <EditText
-                    android:id="@+id/etReplyNote"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="2"
-                    android:background="@drawable/edittext_background"
-                    android:hint="Note / Stock info..."
-                    android:paddingHorizontal="10dp"
-                    android:textColor="@color/black"
-                    android:textColorHint="@color/text_gray"
-                    android:textSize="13sp" />
-
-            </LinearLayout>
+                android:background="@drawable/edittext_background"
+                android:gravity="top|start"
+                android:hint="Note / Stock info..."
+                android:inputType="textCapSentences|textMultiLine"
+                android:maxLines="3"
+                android:minHeight="48dp"
+                android:minLines="2"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="10dp"
+                android:textColor="@color/black"
+                android:textColorHint="@color/text_gray"
+                android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button"
                 android:id="@+id/btnSubmitPharmacyReply"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
                 android:layout_marginTop="10dp"
-                android:text="Submit Pharmacy Response"
-                android:textAllCaps="false"
-                app:backgroundTint="@color/primary_teal"
-                app:cornerRadius="22dp" />
+                android:text="Submit Pharmacy Response" />
 
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
