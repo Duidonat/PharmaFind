@@ -104,22 +104,9 @@ public class ActivityMapPicker extends AppCompatActivity implements OnMapReadyCa
 
         setupFallbackWebMap(selectedLatLng.latitude, selectedLatLng.longitude);
 
-        // Check if API key is default placeholder or missing
-        boolean isPlaceholderKey = true;
-        try {
-            android.content.pm.ApplicationInfo ai = getPackageManager().getApplicationInfo(getPackageName(), android.content.pm.PackageManager.GET_META_DATA);
-            Bundle bundle = ai.metaData;
-            if (bundle != null) {
-                String apiKey = bundle.getString("com.google.android.geo.API_KEY");
-                if (apiKey != null && !apiKey.contains("YOUR_GOOGLE_MAPS_API_KEY")) {
-                    isPlaceholderKey = false;
-                }
-            }
-        } catch (Exception ignored) {}
-
-        // If API key is placeholder, show OpenStreetMap tile view by default so roads/streets display immediately
-        if (isPlaceholderKey && webViewMapPicker != null) {
-            webViewMapPicker.setVisibility(View.VISIBLE);
+        // Native Google Maps is active by default
+        if (webViewMapPicker != null) {
+            webViewMapPicker.setVisibility(View.GONE);
         }
 
         if (btnToggleMapSource != null) {
@@ -176,6 +163,7 @@ public class ActivityMapPicker extends AppCompatActivity implements OnMapReadyCa
         if (webViewMapPicker == null) return;
         webViewMapPicker.getSettings().setJavaScriptEnabled(true);
         webViewMapPicker.getSettings().setDomStorageEnabled(true);
+        webViewMapPicker.getSettings().setUserAgentString("Mozilla/5.0 (Linux; Android 12; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36 PharmaFindApp/1.0");
         webViewMapPicker.addJavascriptInterface(new WebAppInterface(), "Android");
 
         String html = "<!DOCTYPE html>" +
@@ -188,9 +176,10 @@ public class ActivityMapPicker extends AppCompatActivity implements OnMapReadyCa
                 "<div id='map'></div>" +
                 "<script>" +
                 "var map = L.map('map').setView([" + initLat + ", " + initLng + "], 15);" +
-                "L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {" +
+                "L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {" +
                 "    maxZoom: 19," +
-                "    attribution: '© OpenStreetMap'" +
+                "    subdomains: 'abcd'," +
+                "    attribution: '© OpenStreetMap © CARTO'" +
                 "}).addTo(map);" +
                 "var marker = L.marker([" + initLat + ", " + initLng + "], {draggable: true}).addTo(map);" +
                 "function updateMarkerPos(lat, lng) {" +
@@ -207,7 +196,7 @@ public class ActivityMapPicker extends AppCompatActivity implements OnMapReadyCa
                 "});" +
                 "</script></body></html>";
 
-        webViewMapPicker.loadDataWithBaseURL("https://openstreetmap.org", html, "text/html", "UTF-8", null);
+        webViewMapPicker.loadDataWithBaseURL("https://carto.com", html, "text/html", "UTF-8", null);
     }
 
     private void setupTextWatcherForManualCoords() {
