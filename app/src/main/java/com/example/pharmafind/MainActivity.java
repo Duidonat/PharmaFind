@@ -151,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 String hashed = PasswordUtils.hashPassword(password);
 
                 // Check Customers table
-                String customerQuery = "SELECT CustomerID, FirstName, Surname, City, Barangay, District FROM dbo.Customers WHERE Username = ? AND (Password = ? OR Password = ?)";
+                String customerQuery = "SELECT CustomerID, FirstName, Surname, City, Barangay, District, Latitude, Longitude FROM dbo.Customers WHERE Username = ? AND (Password = ? OR Password = ?)";
                 PreparedStatement customerStmt = con.prepareStatement(customerQuery);
                 customerStmt.setString(1, username);
                 customerStmt.setString(2, hashed);
@@ -164,11 +164,14 @@ public class MainActivity extends AppCompatActivity {
                     String city = customerRs.getString("City");
                     String barangay = customerRs.getString("Barangay");
                     String district = customerRs.getString("District");
+                    double lat = customerRs.getDouble("Latitude");
+                    double lng = customerRs.getDouble("Longitude");
                     if (city == null) city = "";
                     if (barangay == null) barangay = "";
                     if (district == null) district = "";
 
                     sessionManager.createCustomerSession(id, username, name, city, barangay, district);
+                    sessionManager.setLocationCoordinates(lat, lng);
                     sessionManager.setRememberMe(rememberMe);
 
                     con.close();
@@ -185,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Check Pharmacies table
-                String pharmacyQuery = "SELECT PharmacyID, PharmacyName, City, Barangay, District, Status FROM dbo.Pharmacies WHERE Username = ? AND (Password = ? OR Password = ?)";
+                String pharmacyQuery = "SELECT PharmacyID, PharmacyName, City, Barangay, District, Status, Latitude, Longitude FROM dbo.Pharmacies WHERE Username = ? AND (Password = ? OR Password = ?)";
                 PreparedStatement pharmacyStmt = con.prepareStatement(pharmacyQuery);
                 pharmacyStmt.setString(1, username);
                 pharmacyStmt.setString(2, hashed);
@@ -199,12 +202,15 @@ public class MainActivity extends AppCompatActivity {
                     String barangay = pharmacyRs.getString("Barangay");
                     String district = pharmacyRs.getString("District");
                     String status = pharmacyRs.getString("Status");
+                    double lat = pharmacyRs.getDouble("Latitude");
+                    double lng = pharmacyRs.getDouble("Longitude");
                     if (city == null) city = "";
                     if (barangay == null) barangay = "";
                     if (district == null) district = "";
                     if (status == null) status = "pending";
 
                     sessionManager.createPharmacySession(id, username, name, city, barangay, district, status);
+                    sessionManager.setLocationCoordinates(lat, lng);
                     sessionManager.setRememberMe(rememberMe);
 
                     con.close();

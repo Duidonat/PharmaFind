@@ -163,8 +163,8 @@ public class FragmentCustomerFeed extends Fragment {
 
     private void showRadiusSelectorDialog(com.google.android.material.chip.Chip chip) {
         if (getContext() == null) return;
-        String[] options = {"1 km", "3 km", "5 km", "10 km", "20 km", "50 km"};
-        final double[] values = {1.0, 3.0, 5.0, 10.0, 20.0, 50.0};
+        String[] options = {"2 km", "3 km", "5 km", "10 km", "20 km", "50 km"};
+        final double[] values = {2.0, 3.0, 5.0, 10.0, 20.0, 50.0};
 
         int checkedItem = 2; // default 5 km
         for (int i = 0; i < values.length; i++) {
@@ -219,9 +219,7 @@ public class FragmentCustomerFeed extends Fragment {
                     matchesStatus = item.getDistanceKm() <= selectedRadiusKm;
                 } else {
                     String userBg = sessionManager.getBarangay();
-                    String userCity = sessionManager.getCity();
-                    matchesStatus = (userBg != null && item.getBarangay() != null && item.getBarangay().equalsIgnoreCase(userBg))
-                            || (userCity != null && item.getCity() != null && item.getCity().equalsIgnoreCase(userCity));
+                    matchesStatus = (userBg != null && item.getBarangay() != null && item.getBarangay().equalsIgnoreCase(userBg));
                 }
             }
 
@@ -353,6 +351,31 @@ public class FragmentCustomerFeed extends Fragment {
                 String customerBarangay = sessionManager.getBarangay();
                 String customerCity = sessionManager.getCity();
 
+                double userLat = sessionManager.getLatitude();
+                double userLng = sessionManager.getLongitude();
+
+                if ((userLat == 0.0 || userLng == 0.0) && sessionManager.getUserId() != -1) {
+                    try {
+                        String cSql = "SELECT Latitude, Longitude FROM dbo.Customers WHERE CustomerID = ?";
+                        PreparedStatement cStmt = con.prepareStatement(cSql);
+                        cStmt.setInt(1, sessionManager.getUserId());
+                        ResultSet cRs = cStmt.executeQuery();
+                        if (cRs.next()) {
+                            userLat = cRs.getDouble("Latitude");
+                            userLng = cRs.getDouble("Longitude");
+                            if (userLat != 0.0 && userLng != 0.0) {
+                                sessionManager.setLocationCoordinates(userLat, userLng);
+                            }
+                        }
+                        cRs.close();
+                        cStmt.close();
+                    } catch (SQLException ignored) {}
+                }
+
+                double[] uCoords = LocationUtils.getCoordinates(customerCity, customerBarangay, userLat, userLng);
+                userLat = uCoords[0];
+                userLng = uCoords[1];
+
                 String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
                         "COALESCE(i.Latitude, c.Latitude, 0.0) AS Latitude, COALESCE(i.Longitude, c.Longitude, 0.0) AS Longitude, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
@@ -376,9 +399,6 @@ public class FragmentCustomerFeed extends Fragment {
 
                 ResultSet rs = stmt.executeQuery();
 
-                double userLat = sessionManager.getLatitude();
-                double userLng = sessionManager.getLongitude();
-
                 while (rs.next()) {
                     int inquiryId = rs.getInt("InquiryID");
                     int customerId = rs.getInt("CustomerID");
@@ -395,13 +415,17 @@ public class FragmentCustomerFeed extends Fragment {
                     double lat = rs.getDouble("Latitude");
                     double lng = rs.getDouble("Longitude");
 
+                    double[] cCoords = LocationUtils.getCoordinates(city, barangay, lat, lng);
+                    double cLat = cCoords[0];
+                    double cLng = cCoords[1];
+
                     InquiryModel model = new InquiryModel(
                             inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount, lat, lng
                     );
 
-                    if (userLat != 0.0 && userLng != 0.0 && lat != 0.0 && lng != 0.0) {
+                    if (userLat != 0.0 && userLng != 0.0 && cLat != 0.0 && cLng != 0.0) {
                         float[] results = new float[1];
-                        android.location.Location.distanceBetween(userLat, userLng, lat, lng, results);
+                        android.location.Location.distanceBetween(userLat, userLng, cLat, cLng, results);
                         model.setDistanceKm(results[0] / 1000.0);
                     }
 

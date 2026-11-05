@@ -124,8 +124,8 @@ public class FragmentPharmacyFeed extends Fragment {
 
     private void showRadiusSelectorDialog(com.google.android.material.chip.Chip chip) {
         if (getContext() == null) return;
-        String[] options = {"1 km", "3 km", "5 km", "10 km", "20 km", "50 km"};
-        final double[] values = {1.0, 3.0, 5.0, 10.0, 20.0, 50.0};
+        String[] options = {"2 km", "3 km", "5 km", "10 km", "20 km", "50 km"};
+        final double[] values = {2.0, 3.0, 5.0, 10.0, 20.0, 50.0};
 
         int checkedItem = 2; // default 5 km
         for (int i = 0; i < values.length; i++) {
@@ -180,9 +180,7 @@ public class FragmentPharmacyFeed extends Fragment {
                     matchesStatus = item.getDistanceKm() <= selectedRadiusKm;
                 } else {
                     String userBg = sessionManager.getBarangay();
-                    String userCity = sessionManager.getCity();
-                    matchesStatus = (userBg != null && item.getBarangay() != null && item.getBarangay().equalsIgnoreCase(userBg))
-                            || (userCity != null && item.getCity() != null && item.getCity().equalsIgnoreCase(userCity));
+                    matchesStatus = (userBg != null && item.getBarangay() != null && item.getBarangay().equalsIgnoreCase(userBg));
                 }
             }
 
@@ -230,6 +228,31 @@ public class FragmentPharmacyFeed extends Fragment {
                 String pharmacyBarangay = sessionManager.getBarangay();
                 String pharmacyCity = sessionManager.getCity();
 
+                double pharmacyLat = sessionManager.getLatitude();
+                double pharmacyLng = sessionManager.getLongitude();
+
+                if ((pharmacyLat == 0.0 || pharmacyLng == 0.0) && sessionManager.getUserId() != -1) {
+                    try {
+                        String pSql = "SELECT Latitude, Longitude FROM dbo.Pharmacies WHERE PharmacyID = ?";
+                        PreparedStatement pStmt = con.prepareStatement(pSql);
+                        pStmt.setInt(1, sessionManager.getUserId());
+                        ResultSet pRs = pStmt.executeQuery();
+                        if (pRs.next()) {
+                            pharmacyLat = pRs.getDouble("Latitude");
+                            pharmacyLng = pRs.getDouble("Longitude");
+                            if (pharmacyLat != 0.0 && pharmacyLng != 0.0) {
+                                sessionManager.setLocationCoordinates(pharmacyLat, pharmacyLng);
+                            }
+                        }
+                        pRs.close();
+                        pStmt.close();
+                    } catch (SQLException ignored) {}
+                }
+
+                double[] pCoords = LocationUtils.getCoordinates(pharmacyCity, pharmacyBarangay, pharmacyLat, pharmacyLng);
+                pharmacyLat = pCoords[0];
+                pharmacyLng = pCoords[1];
+
                 String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
                         "COALESCE(i.Latitude, c.Latitude, 0.0) AS Latitude, COALESCE(i.Longitude, c.Longitude, 0.0) AS Longitude, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
@@ -253,9 +276,6 @@ public class FragmentPharmacyFeed extends Fragment {
 
                 ResultSet rs = stmt.executeQuery();
 
-                double pharmacyLat = sessionManager.getLatitude();
-                double pharmacyLng = sessionManager.getLongitude();
-
                 while (rs.next()) {
                     int inquiryId = rs.getInt("InquiryID");
                     int customerId = rs.getInt("CustomerID");
@@ -272,13 +292,17 @@ public class FragmentPharmacyFeed extends Fragment {
                     double lat = rs.getDouble("Latitude");
                     double lng = rs.getDouble("Longitude");
 
+                    double[] cCoords = LocationUtils.getCoordinates(city, barangay, lat, lng);
+                    double cLat = cCoords[0];
+                    double cLng = cCoords[1];
+
                     InquiryModel model = new InquiryModel(
                             inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount, lat, lng
                     );
 
-                    if (pharmacyLat != 0.0 && pharmacyLng != 0.0 && lat != 0.0 && lng != 0.0) {
+                    if (pharmacyLat != 0.0 && pharmacyLng != 0.0 && cLat != 0.0 && cLng != 0.0) {
                         float[] results = new float[1];
-                        android.location.Location.distanceBetween(pharmacyLat, pharmacyLng, lat, lng, results);
+                        android.location.Location.distanceBetween(pharmacyLat, pharmacyLng, cLat, cLng, results);
                         model.setDistanceKm(results[0] / 1000.0);
                     }
 

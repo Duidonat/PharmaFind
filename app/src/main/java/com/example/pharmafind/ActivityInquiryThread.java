@@ -313,6 +313,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
                 double userLat = sessionManager.getLatitude();
                 double userLng = sessionManager.getLongitude();
+                double[] uCoords = LocationUtils.getCoordinates(sessionManager.getCity(), sessionManager.getBarangay(), userLat, userLng);
+                userLat = uCoords[0];
+                userLng = uCoords[1];
 
                 while (rs.next()) {
                     int replyId = rs.getInt("ReplyID");
@@ -329,13 +332,17 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     double pLat = rs.getDouble("Latitude");
                     double pLng = rs.getDouble("Longitude");
 
+                    double[] pCoords = LocationUtils.getCoordinates(city, barangay, pLat, pLng);
+                    double finalPLat = pCoords[0];
+                    double finalPLng = pCoords[1];
+
                     PharmacyReplyModel model = new PharmacyReplyModel(
                             replyId, inquiryId, pharmacyId, pharmacyName, availStatus, price, note, createdAt, city, barangay, contact, pharmacyStatus, pLat, pLng
                     );
 
-                    if (userLat != 0.0 && userLng != 0.0 && pLat != 0.0 && pLng != 0.0) {
+                    if (userLat != 0.0 && userLng != 0.0 && finalPLat != 0.0 && finalPLng != 0.0) {
                         float[] results = new float[1];
-                        android.location.Location.distanceBetween(userLat, userLng, pLat, pLng, results);
+                        android.location.Location.distanceBetween(userLat, userLng, finalPLat, finalPLng, results);
                         model.setDistanceKm(results[0] / 1000.0);
                     }
 

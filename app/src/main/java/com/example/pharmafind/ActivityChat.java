@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -41,10 +42,22 @@ public class ActivityChat extends AppCompatActivity {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private boolean isPolling = false;
+
+    private final Runnable pollRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isPolling) {
+                loadMessagesFromDBQuietly();
+                mainHandler.postDelayed(this, 3000);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_chat);
 
         sqlHelper = new conSQL();
@@ -60,16 +73,34 @@ public class ActivityChat extends AppCompatActivity {
         ImageButton btnBack = findViewById(R.id.btnBackChat);
         btnBack.setOnClickListener(v -> finish());
 
-        // Push the toolbar below the status bar (Android 15+ draws the app behind it).
         View toolbar = findViewById(R.id.toolbarChat);
-        if (toolbar != null) {
-            int baseTopPadding = toolbar.getPaddingTop();
-            ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
-                Insets statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars());
-                toolbar.setPadding(toolbar.getPaddingLeft(), baseTopPadding + statusBars.top, toolbar.getPaddingRight(), toolbar.getPaddingBottom());
-                return insets;
-            });
-        }
+        View chatInputContainer = findViewById(R.id.llChatInputContainer);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
+            Insets statusBars = insets.getInsets(WindowInsetsCompat.Type.statusBars());
+            Insets navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
+            Insets ime = insets.getInsets(WindowInsetsCompat.Type.ime());
+
+            if (toolbar != null) {
+                toolbar.setPadding(
+                    toolbar.getPaddingLeft(),
+                    statusBars.top,
+                    toolbar.getPaddingRight(),
+                    toolbar.getPaddingBottom()
+                );
+            }
+            if (chatInputContainer != null) {
+                int base12Px = (int) (12 * getResources().getDisplayMetrics().density);
+                int bottomInset = Math.max(navBars.bottom, ime.bottom);
+                chatInputContainer.setPadding(
+                    chatInputContainer.getPaddingLeft(),
+                    base12Px,
+                    chatInputContainer.getPaddingRight(),
+                    base12Px + bottomInset
+                );
+            }
+            return insets;
+        });
 
         TextView tvChatPartnerName = findViewById(R.id.tvChatPartnerName);
         tvChatPartnerName.setText(receiverName);
@@ -109,6 +140,20 @@ public class ActivityChat extends AppCompatActivity {
         loadMessagesFromDB();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isPolling = true;
+        mainHandler.postDelayed(pollRunnable, 3000);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isPolling = false;
+        mainHandler.removeCallbacks(pollRunnable);
+    }
+
     private void handleCustomerSatisfiedCare() {
         UiMessage.show(this, "I am satisfied with my care. Closing chat & clearing storage...");
         executor.execute(() -> {
@@ -116,13 +161,11 @@ public class ActivityChat extends AppCompatActivity {
             if (con == null) return;
 
             try {
-                // Delete all messages for this inquiry from DB to save storage space
                 String deleteQuery = "DELETE FROM dbo.Messages WHERE InquiryID = ?";
                 PreparedStatement stmt = con.prepareStatement(deleteQuery);
                 stmt.setInt(1, inquiryId);
                 stmt.executeUpdate();
 
-                // Update inquiry status to fulfilled
                 String fulfillQuery = "UPDATE dbo.Inquiries SET Status = 'fulfilled' WHERE InquiryID = ?";
                 PreparedStatement fulfillStmt = con.prepareStatement(fulfillQuery);
                 fulfillStmt.setInt(1, inquiryId);
@@ -218,6 +261,64 @@ public class ActivityChat extends AppCompatActivity {
                     con.close();
                 } catch (SQLException ignored) {}
                 Log.e("ActivityChat", "Error loading messages: " + e.getMessage());
+            }
+        });
+    }
+
+    private void loadMessagesFromDBQuietly() {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
+
+            try {
+                List<MessageModel> tempMessages = new ArrayList<>();
+                String query = "SELECT MessageID, InquiryID, SenderID, SenderRole, SenderName, ReceiverID, MessageText, CONVERT(VARCHAR, CreatedAt, 108) AS CreatedAtStr " +
+                        "FROM dbo.Messages " +
+                        "WHERE InquiryID = ? " +
+                        "ORDER BY CreatedAt ASC";
+
+                PreparedStatement stmt = con.prepareStatement(query);
+                stmt.setInt(1, inquiryId);
+                ResultSet rs = stmt.executeQuery();
+
+                while (rs.next()) {
+                    int msgId = rs.getInt("MessageID");
+                    int inqId = rs.getInt("InquiryID");
+                    int senderId = rs.getInt("SenderID");
+                    String senderRole = rs.getString("SenderRole");
+                    String senderName = rs.getString("SenderName");
+                    int recId = rs.getInt("ReceiverID");
+                    String text = rs.getString("MessageText");
+                    String createdAt = rs.getString("CreatedAtStr");
+
+                    tempMessages.add(new MessageModel(
+                            msgId, inqId, senderId, senderRole, senderName, recId, text, createdAt
+                    ));
+                }
+
+                con.close();
+
+                mainHandler.post(() -> {
+                    if (tempMessages.size() > messageList.size()) {
+                        MessageModel latest = tempMessages.get(tempMessages.size() - 1);
+                        boolean isMine = (latest.getSenderId() == sessionManager.getUserId())
+                                && (latest.getSenderRole() != null && latest.getSenderRole().equalsIgnoreCase(sessionManager.getRole()));
+                        if (!isMine && !messageList.isEmpty()) {
+                            UiMessage.show(ActivityChat.this, "📩 New message from " + latest.getSenderName());
+                        }
+                        messageList.clear();
+                        messageList.addAll(tempMessages);
+                        messageAdapter.notifyDataSetChanged();
+                        if (!messageList.isEmpty()) {
+                            rvMessages.smoothScrollToPosition(messageList.size() - 1);
+                        }
+                    }
+                });
+
+            } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
             }
         });
     }

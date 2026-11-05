@@ -48,7 +48,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         holder.tvMessageText.setText(msg.getMessageText());
         holder.tvMessageTime.setText(msg.getCreatedAt() != null ? msg.getCreatedAt() : "");
 
-        boolean isSentByMe = (msg.getSenderId() == currentUserId);
+        boolean isSentByMe = (msg.getSenderId() == currentUserId)
+                && (msg.getSenderRole() != null && msg.getSenderRole().equalsIgnoreCase(currentUserRole));
 
         if (isSentByMe) {
             holder.layoutBubbleContainer.setGravity(Gravity.END);

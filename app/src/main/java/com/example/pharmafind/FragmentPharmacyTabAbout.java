@@ -126,6 +126,7 @@ public class FragmentPharmacyTabAbout extends Fragment {
                     double lng = rs.getDouble("Longitude");
 
                     mainHandler.post(() -> {
+                        sessionManager.setLocationCoordinates(lat, lng);
                         String finalName = (name != null && !name.trim().isEmpty()) ? name : sessionManager.getFullName();
                         String finalCity = (city != null && !city.trim().isEmpty()) ? city : sessionManager.getCity();
                         String finalBarangay = (barangay != null && !barangay.trim().isEmpty()) ? barangay : sessionManager.getBarangay();
@@ -416,6 +417,7 @@ public class FragmentPharmacyTabAbout extends Fragment {
                     if (btnSave != null) btnSave.setEnabled(true);
                     if (rows > 0) {
                         sessionManager.createPharmacySession(sessionManager.getUserId(), sessionManager.getUsername(), name, city, barangay, district, sessionManager.getStatus());
+                        sessionManager.setLocationCoordinates(lat, lng);
                         UiMessage.show(this, "Profile & Location Pin Updated!");
                         dialog.dismiss();
                         loadPharmacyDetails();
