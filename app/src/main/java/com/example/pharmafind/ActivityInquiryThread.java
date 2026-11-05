@@ -271,6 +271,33 @@ public class ActivityInquiryThread extends AppCompatActivity {
                             tvPhotoRestricted.setVisibility(hasImage && !canViewPhoto ? View.VISIBLE : View.GONE);
                         }
                     });
+
+                    if ("pharmacy".equalsIgnoreCase(sessionManager.getRole())) {
+                        try {
+                            PreparedStatement msgCheck = con.prepareStatement("SELECT COUNT(*) FROM dbo.Messages WHERE InquiryID = ? AND ReceiverID = ? AND SenderRole = 'customer'");
+                            msgCheck.setInt(1, inquiryId);
+                            msgCheck.setInt(2, sessionManager.getUserId());
+                            ResultSet msgCheckRs = msgCheck.executeQuery();
+                            boolean customerMessaged = false;
+                            if (msgCheckRs.next()) {
+                                customerMessaged = msgCheckRs.getInt(1) > 0;
+                            }
+                            msgCheckRs.close();
+                            msgCheck.close();
+
+                            if (customerMessaged || getIntent().getBooleanExtra("auto_open_chat", false)) {
+                                final int finalCustId = customerId;
+                                final String finalCustName = customerName;
+                                mainHandler.post(() -> {
+                                    Intent chatIntent = new Intent(ActivityInquiryThread.this, ActivityChat.class);
+                                    chatIntent.putExtra("inquiry_id", inquiryId);
+                                    chatIntent.putExtra("receiver_id", finalCustId);
+                                    chatIntent.putExtra("receiver_name", finalCustName != null ? finalCustName : "Customer");
+                                    startActivity(chatIntent);
+                                });
+                            }
+                        } catch (SQLException ignored) {}
+                    }
                 }
 
                 con.close();

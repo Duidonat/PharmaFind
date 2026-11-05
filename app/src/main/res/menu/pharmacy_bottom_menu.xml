@@ -6,6 +6,11 @@
         android:title="Patient Requests" />
 
     <item
+        android:id="@+id/nav_pharmacy_notifications"
+        android:icon="@drawable/ic_notifications"
+        android:title="Notifications" />
+
+    <item
         android:id="@+id/nav_pharmacy_profile"
         android:icon="@drawable/ic_local_pharmacy"
         android:title="My Pharmacy" />

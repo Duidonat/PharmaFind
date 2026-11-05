@@ -55,4 +55,7 @@ public class InquiryModel {
     public double getLongitude() { return longitude; }
     public double getDistanceKm() { return distanceKm; }
     public void setDistanceKm(double distanceKm) { this.distanceKm = distanceKm; }
+    private boolean hasCustomerMessage = false;
+    public boolean hasCustomerMessage() { return hasCustomerMessage; }
+    public void setHasCustomerMessage(boolean hasCustomerMessage) { this.hasCustomerMessage = hasCustomerMessage; }
 }

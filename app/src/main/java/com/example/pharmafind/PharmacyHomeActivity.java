@@ -89,6 +89,9 @@ public class PharmacyHomeActivity extends AppCompatActivity {
             if (itemId == R.id.nav_pharmacy_feed) {
                 loadFragment(new FragmentPharmacyFeed());
                 return true;
+            } else if (itemId == R.id.nav_pharmacy_notifications) {
+                loadFragment(new FragmentPharmacyNotifications());
+                return true;
             } else if (itemId == R.id.nav_pharmacy_profile) {
                 loadFragment(new FragmentPharmacyProfile());
                 return true;
@@ -134,12 +137,12 @@ public class PharmacyHomeActivity extends AppCompatActivity {
                 mainHandler.post(() -> {
                     if (bottomNav == null) return;
                     if (count > 0) {
-                        BadgeDrawable badge = bottomNav.getOrCreateBadge(R.id.nav_pharmacy_feed);
+                        BadgeDrawable badge = bottomNav.getOrCreateBadge(R.id.nav_pharmacy_notifications);
                         badge.setNumber(count);
                         badge.setBackgroundColor(ContextCompat.getColor(PharmacyHomeActivity.this, R.color.primary_teal));
                         badge.setVisible(true);
                     } else {
-                        bottomNav.removeBadge(R.id.nav_pharmacy_feed);
+                        bottomNav.removeBadge(R.id.nav_pharmacy_notifications);
                     }
                 });
 
