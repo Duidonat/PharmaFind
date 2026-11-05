@@ -17,10 +17,21 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
     private final List<MessageModel> messageList;
     private final int currentUserId;
+    private final String currentUserRole;
+    private OnSatisfactionListener satisfactionListener;
 
-    public MessageAdapter(List<MessageModel> messageList, int currentUserId) {
+    public interface OnSatisfactionListener {
+        void onCustomerSatisfied(MessageModel message);
+    }
+
+    public MessageAdapter(List<MessageModel> messageList, int currentUserId, String currentUserRole) {
         this.messageList = messageList;
         this.currentUserId = currentUserId;
+        this.currentUserRole = currentUserRole;
+    }
+
+    public void setOnSatisfactionListener(OnSatisfactionListener listener) {
+        this.satisfactionListener = listener;
     }
 
     @NonNull
@@ -59,6 +70,31 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                 holder.tvSenderName.setVisibility(View.GONE);
             }
         }
+
+        boolean isSatisfactionPrompt = msg.getMessageText() != null &&
+                msg.getMessageText().toLowerCase().contains("satisfied with my care");
+
+        if (isSatisfactionPrompt && "customer".equalsIgnoreCase(currentUserRole) && !isSentByMe) {
+            if (holder.layoutSatisfactionActions != null) {
+                holder.layoutSatisfactionActions.setVisibility(View.VISIBLE);
+                if (holder.btnSatisfiedYes != null) {
+                    holder.btnSatisfiedYes.setOnClickListener(v -> {
+                        if (satisfactionListener != null) {
+                            satisfactionListener.onCustomerSatisfied(msg);
+                        }
+                    });
+                }
+                if (holder.btnSatisfiedNo != null) {
+                    holder.btnSatisfiedNo.setOnClickListener(v -> {
+                        holder.layoutSatisfactionActions.setVisibility(View.GONE);
+                    });
+                }
+            }
+        } else {
+            if (holder.layoutSatisfactionActions != null) {
+                holder.layoutSatisfactionActions.setVisibility(View.GONE);
+            }
+        }
     }
 
     @Override
@@ -67,9 +103,10 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     }
 
     static class MessageViewHolder extends RecyclerView.ViewHolder {
-        LinearLayout layoutBubbleContainer;
+        LinearLayout layoutBubbleContainer, layoutSatisfactionActions;
         MaterialCardView cardMessageBubble;
         TextView tvSenderName, tvMessageText, tvMessageTime;
+        com.google.android.material.button.MaterialButton btnSatisfiedYes, btnSatisfiedNo;
 
         public MessageViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -78,6 +115,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             tvSenderName = itemView.findViewById(R.id.tvSenderName);
             tvMessageText = itemView.findViewById(R.id.tvMessageText);
             tvMessageTime = itemView.findViewById(R.id.tvMessageTime);
+            layoutSatisfactionActions = itemView.findViewById(R.id.layoutSatisfactionActions);
+            btnSatisfiedYes = itemView.findViewById(R.id.btnSatisfiedYes);
+            btnSatisfiedNo = itemView.findViewById(R.id.btnSatisfiedNo);
         }
     }
 }

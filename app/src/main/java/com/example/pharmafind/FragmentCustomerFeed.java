@@ -55,6 +55,7 @@ public class FragmentCustomerFeed extends Fragment {
     private ChipGroup chipGroupFilter;
     private String currentSearchQuery = "";
     private String currentStatusFilter = "all"; // 'all', 'open', 'fulfilled'
+    private double selectedRadiusKm = 5.0;
 
     private ProgressBar pbFeedLoading;
     private TextView tvFeedEmptyState;
@@ -66,6 +67,8 @@ public class FragmentCustomerFeed extends Fragment {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -94,6 +97,12 @@ public class FragmentCustomerFeed extends Fragment {
         chipGroupFilter = view.findViewById(R.id.chipGroupFilter);
         pbFeedLoading = view.findViewById(R.id.pbFeedLoading);
         tvFeedEmptyState = view.findViewById(R.id.tvFeedEmptyState);
+
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshCustomerFeed);
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setColorSchemeResources(R.color.primary_teal);
+            swipeRefreshLayout.setOnRefreshListener(this::loadInquiriesFromDB);
+        }
 
         RecyclerView rvInquiries = view.findViewById(R.id.rvInquiries);
         rvInquiries.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -126,13 +135,20 @@ public class FragmentCustomerFeed extends Fragment {
             });
         }
 
-        // Status Filter Chips
+        // Status & Radius Filter Chips
+        com.google.android.material.chip.Chip chipWithin5km = view.findViewById(R.id.chipWithin5km);
+        if (chipWithin5km != null) {
+            chipWithin5km.setOnClickListener(v -> showRadiusSelectorDialog(chipWithin5km));
+        }
+
         if (chipGroupFilter != null) {
             chipGroupFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
                 if (checkedIds.contains(R.id.chipOpen)) {
                     currentStatusFilter = "open";
                 } else if (checkedIds.contains(R.id.chipFulfilled)) {
                     currentStatusFilter = "fulfilled";
+                } else if (checkedIds.contains(R.id.chipWithin5km)) {
+                    currentStatusFilter = "within5km";
                 } else {
                     currentStatusFilter = "all";
                 }
@@ -143,6 +159,37 @@ public class FragmentCustomerFeed extends Fragment {
         ensureTablesExist();
 
         return view;
+    }
+
+    private void showRadiusSelectorDialog(com.google.android.material.chip.Chip chip) {
+        if (getContext() == null) return;
+        String[] options = {"1 km", "3 km", "5 km", "10 km", "20 km", "50 km"};
+        final double[] values = {1.0, 3.0, 5.0, 10.0, 20.0, 50.0};
+
+        int checkedItem = 2; // default 5 km
+        for (int i = 0; i < values.length; i++) {
+            if (Math.abs(values[i] - selectedRadiusKm) < 0.1) {
+                checkedItem = i;
+                break;
+            }
+        }
+
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Select Distance Radius")
+                .setSingleChoiceItems(options, checkedItem, (dialog, which) -> {
+                    selectedRadiusKm = values[which];
+                    if (chip != null) {
+                        chip.setText(String.format(java.util.Locale.US, "Within %.0f km ⚙", selectedRadiusKm));
+                    }
+                    currentStatusFilter = "within5km";
+                    if (chipGroupFilter != null) {
+                        chipGroupFilter.check(R.id.chipWithin5km);
+                    }
+                    filterInquiries();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override
@@ -167,6 +214,15 @@ public class FragmentCustomerFeed extends Fragment {
                 matchesStatus = "open".equalsIgnoreCase(item.getStatus());
             } else if ("fulfilled".equalsIgnoreCase(currentStatusFilter)) {
                 matchesStatus = "fulfilled".equalsIgnoreCase(item.getStatus());
+            } else if ("within5km".equalsIgnoreCase(currentStatusFilter)) {
+                if (item.getDistanceKm() >= 0.0) {
+                    matchesStatus = item.getDistanceKm() <= selectedRadiusKm;
+                } else {
+                    String userBg = sessionManager.getBarangay();
+                    String userCity = sessionManager.getCity();
+                    matchesStatus = (userBg != null && item.getBarangay() != null && item.getBarangay().equalsIgnoreCase(userBg))
+                            || (userCity != null && item.getCity() != null && item.getCity().equalsIgnoreCase(userCity));
+                }
             }
 
             if (matchesSearch && matchesStatus) {
@@ -189,6 +245,7 @@ public class FragmentCustomerFeed extends Fragment {
     }
 
     private void showFeedError(String message) {
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
         if (pbFeedLoading != null) pbFeedLoading.setVisibility(View.GONE);
         if (tvFeedEmptyState != null) {
             tvFeedEmptyState.setText(message);
@@ -215,6 +272,8 @@ public class FragmentCustomerFeed extends Fragment {
                     "Barangay NVARCHAR(100), " +
                     "District NVARCHAR(100), " +
                     "Status NVARCHAR(50) DEFAULT 'open', " +
+                    "Latitude FLOAT NULL, " +
+                    "Longitude FLOAT NULL, " +
                     "CreatedAt DATETIME DEFAULT GETDATE() " +
                     ") " +
                     "END";
@@ -227,11 +286,10 @@ public class FragmentCustomerFeed extends Fragment {
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Barangay') ALTER TABLE dbo.Inquiries ADD Barangay NVARCHAR(100) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'District') ALTER TABLE dbo.Inquiries ADD District NVARCHAR(100) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'ImageUrl') ALTER TABLE dbo.Inquiries ADD ImageUrl NVARCHAR(MAX) NULL;",
-                    // The README's setup script created ImageUrl as NVARCHAR(255), far too small for a
-                    // photo stored as Base64 text - widen it so posting a request with a photo works.
                     "IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'ImageUrl' AND CHARACTER_MAXIMUM_LENGTH <> -1) ALTER TABLE dbo.Inquiries ALTER COLUMN ImageUrl NVARCHAR(MAX) NULL;",
                     "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Description') ALTER TABLE dbo.Inquiries ADD Description NVARCHAR(MAX) NULL;",
-                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Status') ALTER TABLE dbo.Inquiries ADD Status NVARCHAR(50) DEFAULT 'open';"
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Status') ALTER TABLE dbo.Inquiries ADD Status NVARCHAR(50) DEFAULT 'open';",
+                    "IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Inquiries' AND COLUMN_NAME = 'Latitude') ALTER TABLE dbo.Inquiries ADD Latitude FLOAT NULL, Longitude FLOAT NULL;"
             };
 
             for (String sql : alterCols) {
@@ -257,6 +315,9 @@ public class FragmentCustomerFeed extends Fragment {
                     ") " +
                     "END";
             stmt.executeUpdate(createRepliesTable);
+
+            // 4. Routine Maintenance (Storage Cleanup)
+            sqlHelper.performRoutineMaintenance();
 
         } catch (SQLException e) {
             Log.e("FragmentCustomerFeed", "Table Creation Error: " + e.getMessage());
@@ -292,16 +353,15 @@ public class FragmentCustomerFeed extends Fragment {
                 String customerBarangay = sessionManager.getBarangay();
                 String customerCity = sessionManager.getCity();
 
-                // Same area-matching approach as FragmentPharmacyFeed, so "your area" means the
-                // same thing on both sides of the app.
                 String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                        "COALESCE(i.Latitude, c.Latitude, 0.0) AS Latitude, COALESCE(i.Longitude, c.Longitude, 0.0) AS Longitude, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
                         "FROM dbo.Inquiries i " +
+                        "LEFT JOIN dbo.Customers c ON i.CustomerID = c.CustomerID " +
                         "WHERE LOWER(i.Barangay) LIKE '%' + LOWER(?) + '%' " +
                         "   OR LOWER(i.City) LIKE '%' + LOWER(?) + '%' " +
                         "   OR LOWER(?) LIKE '%' + LOWER(i.Barangay) + '%' " +
                         "   OR i.Barangay IS NULL OR i.Barangay = '' OR ? = '' " +
-                        // Match the city both ways too, so "Lipa City" and "Lipa" find each other
                         "   OR LOWER(?) LIKE '%' + LOWER(i.City) + '%' " +
                         "ORDER BY i.CreatedAt DESC";
 
@@ -316,6 +376,9 @@ public class FragmentCustomerFeed extends Fragment {
 
                 ResultSet rs = stmt.executeQuery();
 
+                double userLat = sessionManager.getLatitude();
+                double userLng = sessionManager.getLongitude();
+
                 while (rs.next()) {
                     int inquiryId = rs.getInt("InquiryID");
                     int customerId = rs.getInt("CustomerID");
@@ -329,10 +392,20 @@ public class FragmentCustomerFeed extends Fragment {
                     String status = rs.getString("Status");
                     String createdAt = rs.getString("CreatedAtStr");
                     int replyCount = rs.getInt("ReplyCount");
+                    double lat = rs.getDouble("Latitude");
+                    double lng = rs.getDouble("Longitude");
 
-                    tempInquiries.add(new InquiryModel(
-                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount
-                    ));
+                    InquiryModel model = new InquiryModel(
+                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount, lat, lng
+                    );
+
+                    if (userLat != 0.0 && userLng != 0.0 && lat != 0.0 && lng != 0.0) {
+                        float[] results = new float[1];
+                        android.location.Location.distanceBetween(userLat, userLng, lat, lng, results);
+                        model.setDistanceKm(results[0] / 1000.0);
+                    }
+
+                    tempInquiries.add(model);
                 }
 
                 con.close();
@@ -340,6 +413,7 @@ public class FragmentCustomerFeed extends Fragment {
                 mainHandler.post(() -> {
                     allInquiriesList.clear();
                     allInquiriesList.addAll(tempInquiries);
+                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
                     if (pbFeedLoading != null) pbFeedLoading.setVisibility(View.GONE);
                     filterInquiries();
                 });
@@ -457,7 +531,7 @@ public class FragmentCustomerFeed extends Fragment {
             ensureTablesExistInternal(con);
 
             try {
-                String query = "INSERT INTO dbo.Inquiries (CustomerID, CustomerName, MedicineName, Description, ImageUrl, City, Barangay, District, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open')";
+                String query = "INSERT INTO dbo.Inquiries (CustomerID, CustomerName, MedicineName, Description, ImageUrl, City, Barangay, District, Status, Latitude, Longitude) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?)";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, sessionManager.getUserId());
                 stmt.setString(2, sessionManager.getFullName());
@@ -467,6 +541,8 @@ public class FragmentCustomerFeed extends Fragment {
                 stmt.setString(6, sessionManager.getCity());
                 stmt.setString(7, sessionManager.getBarangay());
                 stmt.setString(8, sessionManager.getDistrict());
+                stmt.setDouble(9, sessionManager.getLatitude());
+                stmt.setDouble(10, sessionManager.getLongitude());
 
                 int rows = stmt.executeUpdate();
                 con.close();
@@ -491,6 +567,25 @@ public class FragmentCustomerFeed extends Fragment {
                     if (btnPost != null) btnPost.setEnabled(true);
                     UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
+            }
+        });
+    }
+
+    // DML COMMAND 4: DELETE (Removes a record from dbo.Inquiries)
+    private void deleteInquiryFromDB(int inquiryId, int customerId) {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
+            try {
+                // DML COMMAND 4: DELETE
+                String query = "DELETE FROM dbo.Inquiries WHERE InquiryID = ? AND CustomerID = ?";
+                PreparedStatement stmt = con.prepareStatement(query);
+                stmt.setInt(1, inquiryId);
+                stmt.setInt(2, customerId);
+                stmt.executeUpdate();
+                con.close();
+            } catch (SQLException e) {
+                Log.e("FragmentCustomerFeed", "Delete Inquiry Error: " + e.getMessage());
             }
         });
     }

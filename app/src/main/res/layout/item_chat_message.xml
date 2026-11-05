@@ -58,6 +58,33 @@
                     android:textColor="#B2DFDB"
                     android:textSize="10sp" />
 
+                <!-- Baymax Care Satisfaction Buttons (Shown to customer on care inquiry) -->
+                <LinearLayout
+                    android:id="@+id/layoutSatisfactionActions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <com.google.android.material.button.MaterialButton
+                        style="@style/Widget.PharmaFind.Button.Small.Filled"
+                        android:id="@+id/btnSatisfiedYes"
+                        android:layout_width="match_parent"
+                        android:text="Yes, I am satisfied!"
+                        app:backgroundTint="#2E7D32"
+                        app:icon="@drawable/ic_check_circle" />
+
+                    <com.google.android.material.button.MaterialButton
+                        style="@style/Widget.PharmaFind.Button.Small"
+                        android:id="@+id/btnSatisfiedNo"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="4dp"
+                        android:text="Not yet"
+                        android:textColor="@color/black" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>

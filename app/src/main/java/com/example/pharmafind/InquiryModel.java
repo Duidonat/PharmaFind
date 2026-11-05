@@ -7,15 +7,22 @@ public class InquiryModel {
     private String customerName;
     private String medicineName;
     private String description;
-    private boolean hasImage; // true if a photo is attached; the photo itself is only loaded on the detail screen
+    private boolean hasImage;
     private String city;
     private String barangay;
     private String district;
-    private String status; // 'open', 'fulfilled', 'expired'
+    private String status;
     private String createdAt;
     private int replyCount;
+    private double latitude;
+    private double longitude;
+    private double distanceKm = -1.0;
 
     public InquiryModel(int inquiryId, int customerId, String customerName, String medicineName, String description, boolean hasImage, String city, String barangay, String district, String status, String createdAt, int replyCount) {
+        this(inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount, 0.0, 0.0);
+    }
+
+    public InquiryModel(int inquiryId, int customerId, String customerName, String medicineName, String description, boolean hasImage, String city, String barangay, String district, String status, String createdAt, int replyCount, double latitude, double longitude) {
         this.inquiryId = inquiryId;
         this.customerId = customerId;
         this.customerName = customerName;
@@ -28,6 +35,8 @@ public class InquiryModel {
         this.status = status;
         this.createdAt = createdAt;
         this.replyCount = replyCount;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public int getInquiryId() { return inquiryId; }
@@ -42,4 +51,8 @@ public class InquiryModel {
     public String getStatus() { return status; }
     public String getCreatedAt() { return createdAt; }
     public int getReplyCount() { return replyCount; }
+    public double getLatitude() { return latitude; }
+    public double getLongitude() { return longitude; }
+    public double getDistanceKm() { return distanceKm; }
+    public void setDistanceKm(double distanceKm) { this.distanceKm = distanceKm; }
 }

@@ -76,6 +76,8 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
 
         MaterialButton btnOpenMaps = findViewById(R.id.btnOpenMaps);
         MaterialButton btnCallPharmacy = findViewById(R.id.btnCallPharmacy);
+        MaterialButton btnChatPharmacy = findViewById(R.id.btnChatPharmacy);
+        int inquiryId = getIntent().getIntExtra("inquiry_id", -1);
 
         btnOpenMaps.setOnClickListener(v -> openPharmacyOnGoogleMaps());
 
@@ -87,6 +89,21 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
                 UiMessage.show(this, "No phone number available");
             }
         });
+
+        if (btnChatPharmacy != null) {
+            btnChatPharmacy.setOnClickListener(v -> {
+                if (inquiryId != -1) {
+                    Intent chatIntent = new Intent(ActivityPharmacyProfile.this, ActivityChat.class);
+                    chatIntent.putExtra("inquiry_id", inquiryId);
+                    chatIntent.putExtra("receiver_id", pharmacyId);
+                    chatIntent.putExtra("receiver_name", tvPharmacyNameTitle.getText().toString());
+                    chatIntent.putExtra("pharmacy_id", pharmacyId);
+                    startActivity(chatIntent);
+                } else {
+                    UiMessage.show(ActivityPharmacyProfile.this, "You can chat with this pharmacy after they respond to a Medicine Request.");
+                }
+            });
+        }
 
         loadPharmacyDetails();
     }
@@ -125,7 +142,9 @@ public class ActivityPharmacyProfile extends AppCompatActivity {
             if (con == null) return;
 
             try {
-                String query = "SELECT PharmacyName, City, Barangay, District, Email, Contact, Status, Latitude, Longitude, OperatingHours, Bio FROM dbo.Pharmacies WHERE PharmacyID = ?";
+                // DML COMMAND 2: SELECT (Retrieves specific pharmacy record details from dbo.Pharmacies)
+                String query = "SELECT PharmacyName, City, Barangay, District, Email, Contact, Status, Latitude, " +
+                        "Longitude, OperatingHours, Bio FROM dbo.Pharmacies WHERE PharmacyID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, pharmacyId);
                 ResultSet rs = stmt.executeQuery();

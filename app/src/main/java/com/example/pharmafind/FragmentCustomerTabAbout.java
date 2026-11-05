@@ -279,12 +279,15 @@ public class FragmentCustomerTabAbout extends Fragment {
             }
 
             try {
-                String query = "UPDATE dbo.Customers SET City = ?, Barangay = ?, District = ?, Latitude = ?, Longitude = ? WHERE CustomerID = ?";
+                // DML COMMAND 3: UPDATE (Modifies existing Customer record location details
+                // in dbo.Customers)
+                String query = "UPDATE dbo.Customers SET City = ?, Barangay = ?, " +
+                        "District = ?, Latitude = ?, Longitude = ? WHERE CustomerID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setString(1, city);
                 stmt.setString(2, barangay);
                 stmt.setString(3, district);
-                stmt.setDouble(4, lat);
+                stmt.setDouble(4, lat); 
                 stmt.setDouble(5, lng);
                 stmt.setInt(6, sessionManager.getUserId());
 

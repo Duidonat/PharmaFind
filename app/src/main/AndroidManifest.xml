@@ -36,6 +36,10 @@
             android:name=".ActivityPharmacyProfile"
             android:exported="false" />
         <activity
+            android:name=".ActivityChat"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
             android:name=".ActivityMapPicker"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

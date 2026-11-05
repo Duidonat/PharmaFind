@@ -40,9 +40,11 @@ public class FragmentPharmacyFeed extends Fragment {
     private ChipGroup chipGroupFilter;
     private String currentSearchQuery = "";
     private String currentStatusFilter = "all";
+    private double selectedRadiusKm = 5.0;
 
     private ProgressBar pbPharmacyFeedLoading;
     private TextView tvPharmacyFeedEmptyState;
+    private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipeRefreshLayout;
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -65,6 +67,12 @@ public class FragmentPharmacyFeed extends Fragment {
         chipGroupFilter = view.findViewById(R.id.chipGroupPharmacyFilter);
         pbPharmacyFeedLoading = view.findViewById(R.id.pbPharmacyFeedLoading);
         tvPharmacyFeedEmptyState = view.findViewById(R.id.tvPharmacyFeedEmptyState);
+
+        swipeRefreshLayout = view.findViewById(R.id.swipeRefreshPharmacyFeed);
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setColorSchemeResources(R.color.primary_teal);
+            swipeRefreshLayout.setOnRefreshListener(this::loadLocalInquiriesFromDB);
+        }
 
         RecyclerView rvInquiries = view.findViewById(R.id.rvPharmacyInquiries);
         rvInquiries.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -91,12 +99,19 @@ public class FragmentPharmacyFeed extends Fragment {
             });
         }
 
+        com.google.android.material.chip.Chip chipPharmacyWithin5km = view.findViewById(R.id.chipPharmacyWithin5km);
+        if (chipPharmacyWithin5km != null) {
+            chipPharmacyWithin5km.setOnClickListener(v -> showRadiusSelectorDialog(chipPharmacyWithin5km));
+        }
+
         if (chipGroupFilter != null) {
             chipGroupFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
                 if (checkedIds.contains(R.id.chipPharmacyOpen)) {
                     currentStatusFilter = "open";
                 } else if (checkedIds.contains(R.id.chipPharmacyFulfilled)) {
                     currentStatusFilter = "fulfilled";
+                } else if (checkedIds.contains(R.id.chipPharmacyWithin5km)) {
+                    currentStatusFilter = "within5km";
                 } else {
                     currentStatusFilter = "all";
                 }
@@ -105,6 +120,37 @@ public class FragmentPharmacyFeed extends Fragment {
         }
 
         return view;
+    }
+
+    private void showRadiusSelectorDialog(com.google.android.material.chip.Chip chip) {
+        if (getContext() == null) return;
+        String[] options = {"1 km", "3 km", "5 km", "10 km", "20 km", "50 km"};
+        final double[] values = {1.0, 3.0, 5.0, 10.0, 20.0, 50.0};
+
+        int checkedItem = 2; // default 5 km
+        for (int i = 0; i < values.length; i++) {
+            if (Math.abs(values[i] - selectedRadiusKm) < 0.1) {
+                checkedItem = i;
+                break;
+            }
+        }
+
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Select Request Search Radius")
+                .setSingleChoiceItems(options, checkedItem, (dialog, which) -> {
+                    selectedRadiusKm = values[which];
+                    if (chip != null) {
+                        chip.setText(String.format(java.util.Locale.US, "Within %.0f km ⚙", selectedRadiusKm));
+                    }
+                    currentStatusFilter = "within5km";
+                    if (chipGroupFilter != null) {
+                        chipGroupFilter.check(R.id.chipPharmacyWithin5km);
+                    }
+                    filterInquiries();
+                    dialog.dismiss();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     @Override
@@ -129,6 +175,15 @@ public class FragmentPharmacyFeed extends Fragment {
                 matchesStatus = "open".equalsIgnoreCase(item.getStatus());
             } else if ("fulfilled".equalsIgnoreCase(currentStatusFilter)) {
                 matchesStatus = "fulfilled".equalsIgnoreCase(item.getStatus());
+            } else if ("within5km".equalsIgnoreCase(currentStatusFilter)) {
+                if (item.getDistanceKm() >= 0.0) {
+                    matchesStatus = item.getDistanceKm() <= selectedRadiusKm;
+                } else {
+                    String userBg = sessionManager.getBarangay();
+                    String userCity = sessionManager.getCity();
+                    matchesStatus = (userBg != null && item.getBarangay() != null && item.getBarangay().equalsIgnoreCase(userBg))
+                            || (userCity != null && item.getCity() != null && item.getCity().equalsIgnoreCase(userCity));
+                }
             }
 
             if (matchesSearch && matchesStatus) {
@@ -151,6 +206,7 @@ public class FragmentPharmacyFeed extends Fragment {
     }
 
     private void showFeedError(String message) {
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
         if (pbPharmacyFeedLoading != null) pbPharmacyFeedLoading.setVisibility(View.GONE);
         if (tvPharmacyFeedEmptyState != null) {
             tvPharmacyFeedEmptyState.setText(message);
@@ -175,13 +231,14 @@ public class FragmentPharmacyFeed extends Fragment {
                 String pharmacyCity = sessionManager.getCity();
 
                 String query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
+                        "COALESCE(i.Latitude, c.Latitude, 0.0) AS Latitude, COALESCE(i.Longitude, c.Longitude, 0.0) AS Longitude, " +
                         "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
                         "FROM dbo.Inquiries i " +
+                        "LEFT JOIN dbo.Customers c ON i.CustomerID = c.CustomerID " +
                         "WHERE LOWER(i.Barangay) LIKE '%' + LOWER(?) + '%' " +
                         "   OR LOWER(i.City) LIKE '%' + LOWER(?) + '%' " +
                         "   OR LOWER(?) LIKE '%' + LOWER(i.Barangay) + '%' " +
                         "   OR i.Barangay IS NULL OR i.Barangay = '' OR ? = '' " +
-                        // Match the city both ways too, so "Lipa City" and "Lipa" find each other
                         "   OR LOWER(?) LIKE '%' + LOWER(i.City) + '%' " +
                         "ORDER BY i.CreatedAt DESC";
 
@@ -196,6 +253,9 @@ public class FragmentPharmacyFeed extends Fragment {
 
                 ResultSet rs = stmt.executeQuery();
 
+                double pharmacyLat = sessionManager.getLatitude();
+                double pharmacyLng = sessionManager.getLongitude();
+
                 while (rs.next()) {
                     int inquiryId = rs.getInt("InquiryID");
                     int customerId = rs.getInt("CustomerID");
@@ -209,10 +269,20 @@ public class FragmentPharmacyFeed extends Fragment {
                     String status = rs.getString("Status");
                     String createdAt = rs.getString("CreatedAtStr");
                     int replyCount = rs.getInt("ReplyCount");
+                    double lat = rs.getDouble("Latitude");
+                    double lng = rs.getDouble("Longitude");
 
-                    tempInquiries.add(new InquiryModel(
-                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount
-                    ));
+                    InquiryModel model = new InquiryModel(
+                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount, lat, lng
+                    );
+
+                    if (pharmacyLat != 0.0 && pharmacyLng != 0.0 && lat != 0.0 && lng != 0.0) {
+                        float[] results = new float[1];
+                        android.location.Location.distanceBetween(pharmacyLat, pharmacyLng, lat, lng, results);
+                        model.setDistanceKm(results[0] / 1000.0);
+                    }
+
+                    tempInquiries.add(model);
                 }
 
                 con.close();
@@ -220,6 +290,7 @@ public class FragmentPharmacyFeed extends Fragment {
                 mainHandler.post(() -> {
                     allInquiriesList.clear();
                     allInquiriesList.addAll(tempInquiries);
+                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
                     if (pbPharmacyFeedLoading != null) pbPharmacyFeedLoading.setVisibility(View.GONE);
                     filterInquiries();
                 });

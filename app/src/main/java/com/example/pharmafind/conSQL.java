@@ -43,4 +43,22 @@ public class conSQL {
         }
         return null;
     }
+
+    public void performRoutineMaintenance() {
+        java.util.concurrent.Executors.newSingleThreadExecutor().execute(() -> {
+            Connection con = conclass();
+            if (con == null) return;
+            try {
+                java.sql.Statement stmt = con.createStatement();
+                // Purge replies for old fulfilled inquiries (older than 7 days)
+                stmt.executeUpdate("DELETE FROM dbo.PharmacyReplies WHERE InquiryID IN (SELECT InquiryID FROM dbo.Inquiries WHERE Status = 'fulfilled' AND CreatedAt < DATEADD(day, -7, GETDATE()))");
+                // Purge old fulfilled inquiries (older than 7 days)
+                stmt.executeUpdate("DELETE FROM dbo.Inquiries WHERE Status = 'fulfilled' AND CreatedAt < DATEADD(day, -7, GETDATE())");
+                con.close();
+            } catch (Exception e) {
+                try { con.close(); } catch (Exception ignored) {}
+                Log.e("conSQL", "Database maintenance warning: " + e.getMessage());
+            }
+        });
+    }
 }

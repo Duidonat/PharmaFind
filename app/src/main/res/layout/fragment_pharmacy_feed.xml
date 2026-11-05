@@ -54,6 +54,13 @@
                 android:text="Open" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/chipPharmacyWithin5km"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Within 5 km" />
+
+            <com.google.android.material.chip.Chip
                 android:id="@+id/chipPharmacyFulfilled"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
@@ -64,13 +71,20 @@
     </HorizontalScrollView>
 
     <!-- Inquiries RecyclerView -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvPharmacyInquiries"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshPharmacyFeed"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scrollChips" />
+        app:layout_constraintTop_toBottomOf="@id/scrollChips">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvPharmacyInquiries"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <ProgressBar
         android:id="@+id/pbPharmacyFeedLoading"

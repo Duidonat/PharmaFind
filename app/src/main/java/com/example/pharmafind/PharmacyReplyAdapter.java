@@ -22,6 +22,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
     public interface OnReplyActionListener {
         void onViewProfileClick(PharmacyReplyModel reply);
         void onContactClick(PharmacyReplyModel reply);
+        void onChatClick(PharmacyReplyModel reply);
         void onAcceptOfferClick(PharmacyReplyModel reply);
         void onReplyTextClick(PharmacyReplyModel reply);
     }
@@ -59,6 +60,9 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
         }
         if (reply.getPharmacyCity() != null && !reply.getPharmacyCity().isEmpty()) {
             locationDate += reply.getPharmacyCity() + " ";
+        }
+        if (reply.getDistanceKm() >= 0.0) {
+            locationDate += String.format(java.util.Locale.US, "(%.1f km away) ", reply.getDistanceKm());
         }
         if (reply.getCreatedAt() != null && !reply.getCreatedAt().isEmpty()) {
             locationDate += "• " + reply.getCreatedAt();
@@ -102,6 +106,12 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
             if (listener != null) listener.onContactClick(reply);
         });
 
+        if (holder.btnChat != null) {
+            holder.btnChat.setOnClickListener(v -> {
+                if (listener != null) listener.onChatClick(reply);
+            });
+        }
+
         if (holder.btnAcceptOffer != null) {
             if (canSelectPharmacy) {
                 holder.btnAcceptOffer.setVisibility(View.VISIBLE);
@@ -131,7 +141,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
 
     static class ReplyViewHolder extends RecyclerView.ViewHolder {
         TextView tvPharmacyName, tvPharmacyLocationDate, tvAvailabilityBadge, tvPrice, tvNote, tvPharmacyVerifiedBadge;
-        MaterialButton btnContact, btnViewPharmacyProfile, btnAcceptOffer;
+        MaterialButton btnContact, btnChat, btnViewPharmacyProfile, btnAcceptOffer;
 
         public ReplyViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -142,6 +152,7 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
             tvPrice = itemView.findViewById(R.id.tvPrice);
             tvNote = itemView.findViewById(R.id.tvNote);
             btnContact = itemView.findViewById(R.id.btnContact);
+            btnChat = itemView.findViewById(R.id.btnChatWithPharmacy);
             btnViewPharmacyProfile = itemView.findViewById(R.id.btnViewPharmacyProfile);
             btnAcceptOffer = itemView.findViewById(R.id.btnAcceptOffer);
         }

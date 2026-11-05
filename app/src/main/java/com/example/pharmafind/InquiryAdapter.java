@@ -42,6 +42,9 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
         String location = item.getBarangay() != null && !item.getBarangay().trim().isEmpty()
                 ? "Barangay " + item.getBarangay()
                 : (item.getCity() != null ? item.getCity() : "");
+        if (item.getDistanceKm() >= 0.0) {
+            location += String.format(java.util.Locale.US, " (%.1f km away)", item.getDistanceKm());
+        }
         String dateStr = item.getCreatedAt() != null ? item.getCreatedAt() : "";
 
         if (!location.isEmpty() && !dateStr.isEmpty()) {

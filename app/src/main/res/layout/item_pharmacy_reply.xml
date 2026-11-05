@@ -123,7 +123,7 @@
             android:layout_marginBottom="8dp"
             android:background="@color/divider_color" />
 
-        <!-- Actions Row: Call & View Profile / Map -->
+        <!-- Actions Row: Call, Chat & View Profile / Map -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -134,9 +134,17 @@
                 style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnContact"
                 android:layout_width="wrap_content"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="6dp"
                 app:icon="@drawable/ic_call"
                 android:text="Call" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/Widget.PharmaFind.Button.Small"
+                android:id="@+id/btnChatWithPharmacy"
+                android:layout_width="wrap_content"
+                android:layout_marginEnd="6dp"
+                app:icon="@drawable/ic_chat_bubble_outline"
+                android:text="Chat" />
 
             <com.google.android.material.button.MaterialButton
                 style="@style/Widget.PharmaFind.Button.Small"

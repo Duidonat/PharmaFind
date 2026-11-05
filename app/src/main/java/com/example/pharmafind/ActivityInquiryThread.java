@@ -126,6 +126,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
             public void onViewProfileClick(PharmacyReplyModel reply) {
                 Intent intent = new Intent(ActivityInquiryThread.this, ActivityPharmacyProfile.class);
                 intent.putExtra("pharmacy_id", reply.getPharmacyId());
+                intent.putExtra("inquiry_id", inquiryId);
                 startActivity(intent);
             }
 
@@ -138,6 +139,16 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 } else {
                     UiMessage.show(ActivityInquiryThread.this, "No phone contact available");
                 }
+            }
+
+            @Override
+            public void onChatClick(PharmacyReplyModel reply) {
+                Intent intent = new Intent(ActivityInquiryThread.this, ActivityChat.class);
+                intent.putExtra("inquiry_id", inquiryId);
+                intent.putExtra("receiver_id", reply.getPharmacyId());
+                intent.putExtra("receiver_name", reply.getPharmacyName());
+                intent.putExtra("pharmacy_id", reply.getPharmacyId());
+                startActivity(intent);
             }
 
             @Override
@@ -285,7 +296,12 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
             try {
                 List<PharmacyReplyModel> tempReplies = new ArrayList<>();
-                String query = "SELECT r.ReplyID, r.InquiryID, r.PharmacyID, p.PharmacyName, r.AvailabilityStatus, r.Price, r.Note, CONVERT(VARCHAR, r.CreatedAt, 120) AS CreatedAtStr, p.City, p.Barangay, p.Contact, p.Status AS PharmacyStatus " +
+                // DML COMMAND 5: SELECT with JOIN, WHERE, and ORDER BY (Retrieves related records
+                // from PharmacyReplies and Pharmacies)
+                String query = "SELECT r.ReplyID, r.InquiryID, r.PharmacyID, p.PharmacyName, " +
+                        "r.AvailabilityStatus, r.Price, r.Note, CONVERT(VARCHAR, r.CreatedAt, 120) " +
+                        "AS CreatedAtStr, p.City, p.Barangay, p.Contact, p.Status AS PharmacyStatus, " +
+                        "COALESCE(p.Latitude, 0.0) AS Latitude, COALESCE(p.Longitude, 0.0) AS Longitude " +
                         "FROM dbo.PharmacyReplies r " +
                         "LEFT JOIN dbo.Pharmacies p ON r.PharmacyID = p.PharmacyID " +
                         "WHERE r.InquiryID = ? " +
@@ -294,6 +310,9 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, inquiryId);
                 ResultSet rs = stmt.executeQuery();
+
+                double userLat = sessionManager.getLatitude();
+                double userLng = sessionManager.getLongitude();
 
                 while (rs.next()) {
                     int replyId = rs.getInt("ReplyID");
@@ -307,10 +326,20 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     String barangay = rs.getString("Barangay");
                     String contact = rs.getString("Contact");
                     String pharmacyStatus = rs.getString("PharmacyStatus");
+                    double pLat = rs.getDouble("Latitude");
+                    double pLng = rs.getDouble("Longitude");
 
-                    tempReplies.add(new PharmacyReplyModel(
-                            replyId, inquiryId, pharmacyId, pharmacyName, availStatus, price, note, createdAt, city, barangay, contact, pharmacyStatus
-                    ));
+                    PharmacyReplyModel model = new PharmacyReplyModel(
+                            replyId, inquiryId, pharmacyId, pharmacyName, availStatus, price, note, createdAt, city, barangay, contact, pharmacyStatus, pLat, pLng
+                    );
+
+                    if (userLat != 0.0 && userLng != 0.0 && pLat != 0.0 && pLng != 0.0) {
+                        float[] results = new float[1];
+                        android.location.Location.distanceBetween(userLat, userLng, pLat, pLng, results);
+                        model.setDistanceKm(results[0] / 1000.0);
+                    }
+
+                    tempReplies.add(model);
                 }
 
                 con.close();

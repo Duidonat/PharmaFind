@@ -99,7 +99,6 @@ public class MainActivity extends AppCompatActivity {
 
         EditText etUsername = dialogView.findViewById(R.id.etUsername);
         EditText etPassword = dialogView.findViewById(R.id.etPassword);
-        android.widget.CheckBox cbShowPassword = dialogView.findViewById(R.id.cbShowPassword);
         android.widget.CheckBox cbRememberMe = dialogView.findViewById(R.id.cbRememberMe);
         MaterialButton btnLoginSubmit = dialogView.findViewById(R.id.btnLoginSubmit);
         TextView tvForgotPassword = dialogView.findViewById(R.id.tvForgotPassword);
@@ -108,17 +107,6 @@ public class MainActivity extends AppCompatActivity {
             tvForgotPassword.setOnClickListener(v -> {
                 bottomSheetDialog.dismiss();
                 showResetPasswordDialog();
-            });
-        }
-
-        if (cbShowPassword != null && etPassword != null) {
-            cbShowPassword.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (isChecked) {
-                    etPassword.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-                } else {
-                    etPassword.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
-                }
-                etPassword.setSelection(etPassword.getText().length());
             });
         }
 
@@ -160,11 +148,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try {
+                String hashed = PasswordUtils.hashPassword(password);
+
                 // Check Customers table
-                String customerQuery = "SELECT CustomerID, FirstName, Surname, City, Barangay, District FROM dbo.Customers WHERE Username = ? AND Password = ?";
+                String customerQuery = "SELECT CustomerID, FirstName, Surname, City, Barangay, District FROM dbo.Customers WHERE Username = ? AND (Password = ? OR Password = ?)";
                 PreparedStatement customerStmt = con.prepareStatement(customerQuery);
                 customerStmt.setString(1, username);
-                customerStmt.setString(2, password);
+                customerStmt.setString(2, hashed);
+                customerStmt.setString(3, password);
                 ResultSet customerRs = customerStmt.executeQuery();
 
                 if (customerRs.next()) {
@@ -194,10 +185,11 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Check Pharmacies table
-                String pharmacyQuery = "SELECT PharmacyID, PharmacyName, City, Barangay, District, Status FROM dbo.Pharmacies WHERE Username = ? AND Password = ?";
+                String pharmacyQuery = "SELECT PharmacyID, PharmacyName, City, Barangay, District, Status FROM dbo.Pharmacies WHERE Username = ? AND (Password = ? OR Password = ?)";
                 PreparedStatement pharmacyStmt = con.prepareStatement(pharmacyQuery);
                 pharmacyStmt.setString(1, username);
-                pharmacyStmt.setString(2, password);
+                pharmacyStmt.setString(2, hashed);
+                pharmacyStmt.setString(3, password);
                 ResultSet pharmacyRs = pharmacyStmt.executeQuery();
 
                 if (pharmacyRs.next()) {
@@ -309,11 +301,13 @@ public class MainActivity extends AppCompatActivity {
                 findCustomerStmt.setString(2, email);
                 ResultSet customerRs = findCustomerStmt.executeQuery();
 
+                String hashedNewPassword = PasswordUtils.hashPassword(newPassword);
+
                 if (customerRs.next()) {
                     int id = customerRs.getInt("CustomerID");
                     String updateQuery = "UPDATE dbo.Customers SET Password = ? WHERE CustomerID = ?";
                     PreparedStatement updateStmt = con.prepareStatement(updateQuery);
-                    updateStmt.setString(1, newPassword);
+                    updateStmt.setString(1, hashedNewPassword);
                     updateStmt.setInt(2, id);
                     updateStmt.executeUpdate();
 
@@ -339,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                     int id = pharmacyRs.getInt("PharmacyID");
                     String updateQuery = "UPDATE dbo.Pharmacies SET Password = ? WHERE PharmacyID = ?";
                     PreparedStatement updateStmt = con.prepareStatement(updateQuery);
-                    updateStmt.setString(1, newPassword);
+                    updateStmt.setString(1, hashedNewPassword);
                     updateStmt.setInt(2, id);
                     updateStmt.executeUpdate();
 
@@ -477,6 +471,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try {
+                String hashedPassword = PasswordUtils.hashPassword(password);
                 String query = "INSERT INTO dbo.Pharmacies (PharmacyName, City, Barangay, District, Email, Contact, Username, Password, Status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setString(1, name);
@@ -486,7 +481,7 @@ public class MainActivity extends AppCompatActivity {
                 stmt.setString(5, email);
                 stmt.setString(6, contact);
                 stmt.setString(7, username);
-                stmt.setString(8, password);
+                stmt.setString(8, hashedPassword);
 
                 int rows = stmt.executeUpdate();
                 con.close();
@@ -611,7 +606,10 @@ public class MainActivity extends AppCompatActivity {
             }
 
             try {
-                String query = "INSERT INTO dbo.Customers (FirstName, Surname, MiddleInitial, City, Barangay, District, Age, BirthDate, Email, Contact, Username, Password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                String hashedPassword = PasswordUtils.hashPassword(password);
+                // DML COMMAND 1: INSERT (Adds a new record to dbo.Customers)
+                String query = "INSERT INTO dbo.Customers (FirstName, Surname, MiddleInitial, City, " +
+                        "Barangay, District, Age, BirthDate, Email, Contact, Username, Password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setString(1, firstName);
                 stmt.setString(2, surname);
@@ -624,7 +622,7 @@ public class MainActivity extends AppCompatActivity {
                 stmt.setString(9, email);
                 stmt.setString(10, contact);
                 stmt.setString(11, username);
-                stmt.setString(12, password);
+                stmt.setString(12, hashedPassword);
 
                 int rows = stmt.executeUpdate();
                 con.close();

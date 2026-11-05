@@ -100,7 +100,7 @@
                 android:textColor="@color/text_gray"
                 android:textSize="14sp" />
 
-            <!-- Main Action Buttons: Maps & Call -->
+            <!-- Main Action Buttons: Maps, Call & Chat -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -111,19 +111,28 @@
                     style="@style/Widget.PharmaFind.Button"
                     android:id="@+id/btnOpenMaps"
                     android:layout_width="0dp"
-                    android:layout_marginEnd="6dp"
+                    android:layout_marginEnd="4dp"
                     android:layout_weight="1"
                     app:icon="@drawable/ic_map"
-                    android:text="View Map Location" />
+                    android:text="Map" />
 
                 <com.google.android.material.button.MaterialButton
                     style="@style/Widget.PharmaFind.Button.Outlined"
                     android:id="@+id/btnCallPharmacy"
                     android:layout_width="0dp"
-                    android:layout_marginStart="6dp"
+                    android:layout_marginHorizontal="4dp"
                     android:layout_weight="1"
                     app:icon="@drawable/ic_call"
-                    android:text="Call Store" />
+                    android:text="Call" />
+
+                <com.google.android.material.button.MaterialButton
+                    style="@style/Widget.PharmaFind.Button.Outlined"
+                    android:id="@+id/btnChatPharmacy"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    app:icon="@drawable/ic_chat_bubble_outline"
+                    android:text="Chat" />
 
             </LinearLayout>
 

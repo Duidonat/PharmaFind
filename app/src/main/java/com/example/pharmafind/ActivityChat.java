@@ -79,8 +79,21 @@ public class ActivityChat extends AppCompatActivity {
         layoutManager.setStackFromEnd(true);
         rvMessages.setLayoutManager(layoutManager);
 
-        messageAdapter = new MessageAdapter(messageList, sessionManager.getUserId());
+        messageAdapter = new MessageAdapter(messageList, sessionManager.getUserId(), sessionManager.getRole());
+        messageAdapter.setOnSatisfactionListener(message -> handleCustomerSatisfiedCare());
         rvMessages.setAdapter(messageAdapter);
+
+        MaterialButton btnAskSatisfaction = findViewById(R.id.btnAskSatisfaction);
+        if ("pharmacy".equalsIgnoreCase(sessionManager.getRole())) {
+            if (btnAskSatisfaction != null) {
+                btnAskSatisfaction.setVisibility(View.VISIBLE);
+                btnAskSatisfaction.setOnClickListener(v -> sendMessageToDB("Are you satisfied with my care?"));
+            }
+        } else {
+            if (btnAskSatisfaction != null) {
+                btnAskSatisfaction.setVisibility(View.GONE);
+            }
+        }
 
         etChatMessageInput = findViewById(R.id.etChatMessageInput);
         MaterialButton btnSendMessage = findViewById(R.id.btnSendMessage);
@@ -94,6 +107,37 @@ public class ActivityChat extends AppCompatActivity {
 
         ensureMessagesTableExists();
         loadMessagesFromDB();
+    }
+
+    private void handleCustomerSatisfiedCare() {
+        UiMessage.show(this, "I am satisfied with my care. Closing chat & clearing storage...");
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) return;
+
+            try {
+                // Delete all messages for this inquiry from DB to save storage space
+                String deleteQuery = "DELETE FROM dbo.Messages WHERE InquiryID = ?";
+                PreparedStatement stmt = con.prepareStatement(deleteQuery);
+                stmt.setInt(1, inquiryId);
+                stmt.executeUpdate();
+
+                // Update inquiry status to fulfilled
+                String fulfillQuery = "UPDATE dbo.Inquiries SET Status = 'fulfilled' WHERE InquiryID = ?";
+                PreparedStatement fulfillStmt = con.prepareStatement(fulfillQuery);
+                fulfillStmt.setInt(1, inquiryId);
+                fulfillStmt.executeUpdate();
+
+                con.close();
+            } catch (SQLException e) {
+                try {
+                    con.close();
+                } catch (SQLException ignored) {}
+                Log.e("ActivityChat", "Error clearing chat storage: " + e.getMessage());
+            }
+
+            mainHandler.postDelayed(this::finish, 1200);
+        });
     }
 
     private void ensureMessagesTableExists() {

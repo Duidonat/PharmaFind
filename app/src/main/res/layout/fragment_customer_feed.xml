@@ -48,53 +48,73 @@
         app:layout_constraintTop_toBottomOf="@id/tvFeedSub" />
 
     <!-- Filter Chips Row -->
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chipGroupFilter"
+    <HorizontalScrollView
+        android:id="@+id/scrollCustomerChips"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        app:singleSelection="true"
-        app:selectionRequired="true"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/etSearchFeed">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipAll"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupFilter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="All" />
+            app:singleSelection="true">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipOpen"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Open Requests" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipAll"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="All" />
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipFulfilled"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Fulfilled" />
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipOpen"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Open Requests" />
 
-    </com.google.android.material.chip.ChipGroup>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipWithin5km"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Within 5 km ⚙" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvInquiries"
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFulfilled"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fulfilled" />
+
+        </com.google.android.material.chip.ChipGroup>
+    </HorizontalScrollView>
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshCustomerFeed"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/chipGroupFilter" />
+        app:layout_constraintTop_toBottomOf="@id/scrollCustomerChips">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvInquiries"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <ProgressBar
         android:id="@+id/pbFeedLoading"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminateTint="@color/primary_teal"
-        app:layout_constraintTop_toBottomOf="@id/chipGroupFilter"
+        app:layout_constraintTop_toBottomOf="@id/scrollCustomerChips"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -109,7 +129,7 @@
         android:textColor="@color/text_gray"
         android:textSize="14sp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/chipGroupFilter"
+        app:layout_constraintTop_toBottomOf="@id/scrollCustomerChips"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

@@ -39,6 +39,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation(libs.material)
     implementation(libs.volley)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("net.sourceforge.jtds:jtds:1.3.1")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.1.0")
