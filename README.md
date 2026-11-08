@@ -4,13 +4,13 @@
 
 ---
 
-## 🚀 System Features & Architecture
+## System Features & Architecture
 
-### 1. 👥 Dual Role Access Control (RBAC)
+### 1. Dual Role Access Control (RBAC)
 - **Customer Mode**: Post medicine inquiries with optional prescription photo attachments, receive price/stock quotes from pharmacies, accept offers, and initiate direct chats.
 - **Pharmacy Mode**: Browse patient requests within a customizable distance radius ($2\text{ km} - 50\text{ km}$), submit stock quotes (*In Stock*, *Available*, *Limited Stock*), and communicate directly with patients.
 
-### 2. 📍 Location & Proximity Engine
+### 2. Location & Proximity Engine
 - **Map Pin Picker (`ActivityMapPicker`)**: Allows customers and pharmacies to select exact GPS coordinates visually on Google Maps.
 - **Distance Calculation (`LocationUtils`)**: Calculates exact distance (in km) between patient and pharmacy coordinates.
   - **Primary source**: device GPS coordinates stored in the session — works for any city, not just one hardcoded list.
@@ -19,7 +19,7 @@
 - **Google Maps Navigation**: One-tap turn-by-turn navigation link directly to the selected pharmacy (`ActivityPharmacyProfile`).
 - **Configurable proximity radius**: Pharmacies can set their own nearby-request radius (1–50 km, default 5 km) in the session settings. The radius is used by both the notification checker and the pharmacy notifications feed.
 
-### 3. 🔔 Categorized Notification & System Alert Engine
+### 3. Categorized Notification & System Alert Engine
 - **Four dedicated Android notification channels** (`NotificationHelper`):
   | Channel | Purpose | Importance |
   |---|---|---|
@@ -27,29 +27,29 @@
   | `pharmafind_chats` | New direct messages | DEFAULT |
   | `pharmafind_replies` | Pharmacy responses to your medicine request | DEFAULT |
   | `pharmafind_general` | System reminders | LOW (no sound) |
-  Users can silence or re-prioritize each channel independently in Android Settings → Apps → PharmaFind → Notifications.
+  Users can silence or re-prioritize each channel independently in Android Settings -> Apps -> PharmaFind -> Notifications.
 - **Filtered Notification Screen**:
   - **All**: View all alerts including pharmacy responses, nearby requests, and active chats.
   - **Pharmacy Responses / Nearby Requests**: Customer view shows pharmacy price quotes; Pharmacy view shows urgent customer inquiries posted within the configured radius.
   - **Chats**: View direct message conversations.
 - **Background Notification Service (`NotificationChecker`, `NotificationHelper`, `NotificationState`)**:
   - Periodically checks the database for new responses, chat messages, or nearby requests and issues status bar notifications.
-  - Now scheduled through **WorkManager** (`NotificationWorker`, `NotificationScheduler.schedulePeriodicCheck`) instead of a 5-second `Handler.postDelayed` loop. WorkManager survives app restarts, respects Doze/App Standby, applies exponential backoff on failure, and only runs when the device has network connectivity.
+  - Scheduled through **WorkManager** (`NotificationWorker`, `NotificationScheduler.schedulePeriodicCheck`).
   - Check interval: every 15 minutes (5-minute flex window).
 - **Dynamic Badge Counts**: Real-time badge indicators on the bottom navigation bar for unread notifications.
 
-### 4. 🖼️ Prescription Photo & Inspection
+### 4. Prescription Photo & Inspection
 - **Secure Image Upload**: Patients can attach prescription photos to their medicine requests.
 - **Privacy Enforcement**: Prescription photos are visible strictly to the requesting patient and responding pharmacies.
 - **Full-Screen Viewer**: Tap any prescription image in `ActivityInquiryThread` to inspect it in full-screen view.
 
-### 5. 💬 Real-Time Direct Messaging
+### 5. Real-Time Direct Messaging
 - **Inquiry-Linked Chat (`ActivityChat`)**: Direct two-way messaging between customer and pharmacy.
 - **Patient Satisfaction & Storage Auto-Cleanup**: Once care is completed or satisfied, the chat storage automatically cleans up and marks the inquiry as fulfilled.
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
 ### Proximity Radius
 The pharmacy nearby-request radius defaults to **5 km**. It can be changed programmatically via:
@@ -66,7 +66,7 @@ Channels are created on first use in `NotificationHelper.createChannels(context)
 
 ---
 
-## 🗄️ Database Setup
+## Database Setup
 
 Run [`database/pharmafind_setup.sql`](database/pharmafind_setup.sql) once in **SQL Server Management Studio** (or your MSSQL remote host, e.g., Somee).
 
@@ -79,11 +79,11 @@ Run [`database/pharmafind_setup.sql`](database/pharmafind_setup.sql) once in **S
 
 The database configuration (host, username, password) lives in `conSQL.java`.
 
-> ⚠️ **Security note**: Database credentials are currently embedded in `conSQL.java` and ship inside the APK. For production deployment, move credential storage to a backend proxy or encrypted configuration so they are not recoverable from the compiled app.
+> **Security note**: Database credentials are currently embedded in `conSQL.java` and ship inside the APK. For production deployment, move credential storage to a backend proxy or encrypted configuration so they are not recoverable from the compiled app.
 
 ---
 
-## 🛠️ Project Structure & Key Files
+## Project Structure & Key Files
 
 | Module / File | Description |
 | :--- | :--- |
@@ -109,7 +109,7 @@ The database configuration (host, username, password) lives in `conSQL.java`.
 
 ---
 
-## 📱 Build & Run
+## Build & Run
 
 ### Requirements
 - Android Studio (Giraffe or newer)
@@ -129,7 +129,7 @@ The app declares `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_FINE_LOCATION`, `AC
 
 ---
 
-## 🔐 Security & Privacy
+## Security & Privacy
 
 - Passwords are hashed with SHA-256 before storage/comparison (`PasswordUtils`).
 - Prescription photos are only fetched for the requesting customer and responding pharmacies (`ActivityInquiryThread`).
@@ -138,6 +138,6 @@ The app declares `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_FINE_LOCATION`, `AC
 
 ---
 
-## 📄 License
+## License
 
 MIT License — see `LICENSE` if present.
