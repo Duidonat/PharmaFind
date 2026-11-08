@@ -583,7 +583,7 @@ public class FragmentCustomerFeed extends Fragment {
                     if (btnPost != null) btnPost.setEnabled(true);
                     if (rows > 0) {
                         UiMessage.show(this, "Medicine Request Posted!");
-                        NotificationHelper.triggerRenderPushNotification(getContext(), "New Medicine Request", "A patient posted a medicine request (" + medicineName + ") near your pharmacy!", "urgent");
+                        NotificationHelper.triggerRenderPushNotification(getContext(), "New Medicine Request", "A patient posted a medicine request (" + medicineName + ") near your pharmacy!", "urgent", sessionManager.getUserId(), sessionManager.getRole());
                         dialog.dismiss();
                         loadInquiriesFromDB();
                     } else {

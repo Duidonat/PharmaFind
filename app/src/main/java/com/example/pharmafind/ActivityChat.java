@@ -402,7 +402,7 @@ public class ActivityChat extends AppCompatActivity {
                 mainHandler.post(() -> {
                     if (rows > 0) {
                         etChatMessageInput.setText("");
-                        NotificationHelper.triggerRenderPushNotification(ActivityChat.this, sessionManager.getFullName(), messageText, "chat");
+                        NotificationHelper.triggerRenderPushNotification(ActivityChat.this, sessionManager.getFullName(), messageText, "chat", sessionManager.getUserId(), sessionManager.getRole());
                         loadMessagesFromDB();
                     }
                 });

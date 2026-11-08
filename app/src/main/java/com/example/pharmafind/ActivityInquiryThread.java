@@ -630,7 +630,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     UiMessage.show(ActivityInquiryThread.this, "Response posted!");
                     etReplyPrice.setText("");
                     etReplyNote.setText("");
-                    NotificationHelper.triggerRenderPushNotification(ActivityInquiryThread.this, "Pharmacy Response", "A pharmacy posted a price quote for your request!", "reply");
+                    NotificationHelper.triggerRenderPushNotification(ActivityInquiryThread.this, "Pharmacy Response", "A pharmacy posted a price quote for your request!", "reply", sessionManager.getUserId(), sessionManager.getRole());
                     loadPharmacyReplies();
                 } else {
                     UiMessage.showLong(ActivityInquiryThread.this, "Failed to post response. Please check database constraint.");
