@@ -30,8 +30,8 @@ public class FragmentChats extends Fragment {
 
     private conSQL sqlHelper;
     private UserSessionManager sessionManager;
-    private InquiryAdapter inquiryAdapter;
-    private final List<InquiryModel> chatList = new ArrayList<>();
+    private ChatThreadAdapter chatThreadAdapter;
+    private final List<ChatThreadModel> chatList = new ArrayList<>();
 
     private SwipeRefreshLayout swipeRefreshLayout;
     private ProgressBar pbChatsLoading;
@@ -66,24 +66,14 @@ public class FragmentChats extends Fragment {
 
         RecyclerView rvChats = view.findViewById(R.id.rvChatsList);
         rvChats.setLayoutManager(new LinearLayoutManager(getContext()));
-        inquiryAdapter = new InquiryAdapter(chatList, item -> {
+        chatThreadAdapter = new ChatThreadAdapter(chatList, item -> {
             Intent intent = new Intent(getContext(), ActivityChat.class);
             intent.putExtra("inquiry_id", item.getInquiryId());
-
-            if ("pharmacy".equalsIgnoreCase(sessionManager.getRole())) {
-                intent.putExtra("receiver_id", item.getCustomerId());
-                intent.putExtra("receiver_name", item.getCustomerName() != null ? item.getCustomerName() : "Customer");
-            } else {
-                int pId = item.getLastPharmacyId() > 0 ? item.getLastPharmacyId() : item.getCustomerId();
-                String pName = item.getLastPharmacyName() != null && !item.getLastPharmacyName().isEmpty()
-                        ? item.getLastPharmacyName()
-                        : "Pharmacy";
-                intent.putExtra("receiver_id", pId);
-                intent.putExtra("receiver_name", pName);
-            }
+            intent.putExtra("receiver_id", item.getPartnerId());
+            intent.putExtra("receiver_name", item.getPartnerName() != null ? item.getPartnerName() : "User");
             startActivity(intent);
         });
-        rvChats.setAdapter(inquiryAdapter);
+        rvChats.setAdapter(chatThreadAdapter);
 
         return view;
     }
@@ -108,34 +98,41 @@ public class FragmentChats extends Fragment {
             }
 
             try {
-                List<InquiryModel> tempChats = new ArrayList<>();
+                List<ChatThreadModel> tempChats = new ArrayList<>();
                 int currentUserId = sessionManager.getUserId();
                 String userRole = sessionManager.getRole();
 
                 String query;
                 if ("pharmacy".equalsIgnoreCase(userRole)) {
-                    query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, " +
-                            "CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, " +
-                            "i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
-                            "COALESCE(i.Latitude, c.Latitude, 0.0) AS Latitude, COALESCE(i.Longitude, c.Longitude, 0.0) AS Longitude, " +
-                            "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount " +
-                            "FROM dbo.Inquiries i " +
-                            "LEFT JOIN dbo.Customers c ON i.CustomerID = c.CustomerID " +
-                            "WHERE i.InquiryID IN (SELECT DISTINCT InquiryID FROM dbo.Messages WHERE (SenderID = ? AND SenderRole = 'pharmacy') OR (ReceiverID = ? AND SenderRole = 'pharmacy')) " +
-                            "ORDER BY i.CreatedAt DESC";
+                    // Pharmacy Query: Retrieves messages involving this pharmacy, grouped by InquiryID, ordered by LATEST message timestamp
+                    query = "SELECT m.InquiryID, " +
+                            "MAX(m.CreatedAt) AS LastMessageTime, " +
+                            "CONVERT(VARCHAR, MAX(m.CreatedAt), 108) AS TimeStr, " +
+                            "(SELECT TOP 1 MessageText FROM dbo.Messages WHERE InquiryID = m.InquiryID ORDER BY CreatedAt DESC) AS LastMessageText, " +
+                            "i.CustomerID, " +
+                            "i.CustomerName, " +
+                            "i.MedicineName " +
+                            "FROM dbo.Messages m " +
+                            "JOIN dbo.Inquiries i ON i.InquiryID = m.InquiryID " +
+                            "WHERE (m.SenderID = ? AND m.SenderRole = 'pharmacy') " +
+                            "   OR (m.ReceiverID = ? AND m.SenderRole = 'customer') " +
+                            "GROUP BY m.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName " +
+                            "ORDER BY LastMessageTime DESC";
                 } else {
-                    query = "SELECT i.InquiryID, i.CustomerID, i.CustomerName, i.MedicineName, i.Description, " +
-                            "CASE WHEN i.ImageUrl IS NOT NULL AND i.ImageUrl <> '' THEN 1 ELSE 0 END AS HasImage, " +
-                            "i.City, i.Barangay, i.District, i.Status, CONVERT(VARCHAR, i.CreatedAt, 120) AS CreatedAtStr, " +
-                            "COALESCE(i.Latitude, c.Latitude, 0.0) AS Latitude, COALESCE(i.Longitude, c.Longitude, 0.0) AS Longitude, " +
-                            "(SELECT COUNT(*) FROM dbo.PharmacyReplies r WHERE r.InquiryID = i.InquiryID) AS ReplyCount, " +
-                            "(SELECT TOP 1 m.SenderID FROM dbo.Messages m WHERE m.InquiryID = i.InquiryID AND m.ReceiverID = ? AND m.SenderRole = 'pharmacy' ORDER BY m.CreatedAt DESC) AS LastPharmacyID, " +
-                            "(SELECT TOP 1 m.SenderName FROM dbo.Messages m WHERE m.InquiryID = i.InquiryID AND m.ReceiverID = ? AND m.SenderRole = 'pharmacy' ORDER BY m.CreatedAt DESC) AS LastPharmacyName " +
-                            "FROM dbo.Inquiries i " +
-                            "LEFT JOIN dbo.Customers c ON i.CustomerID = c.CustomerID " +
+                    // Customer Query: Retrieves messages for inquiries posted by this customer, ordered by LATEST message timestamp
+                    query = "SELECT m.InquiryID, " +
+                            "MAX(m.CreatedAt) AS LastMessageTime, " +
+                            "CONVERT(VARCHAR, MAX(m.CreatedAt), 108) AS TimeStr, " +
+                            "(SELECT TOP 1 MessageText FROM dbo.Messages WHERE InquiryID = m.InquiryID ORDER BY CreatedAt DESC) AS LastMessageText, " +
+                            "(SELECT TOP 1 SenderID FROM dbo.Messages WHERE InquiryID = m.InquiryID AND SenderRole = 'pharmacy' ORDER BY CreatedAt DESC) AS LastPharmacyID, " +
+                            "(SELECT TOP 1 SenderName FROM dbo.Messages WHERE InquiryID = m.InquiryID AND SenderRole = 'pharmacy' ORDER BY CreatedAt DESC) AS LastPharmacyName, " +
+                            "i.CustomerID, " +
+                            "i.MedicineName " +
+                            "FROM dbo.Messages m " +
+                            "JOIN dbo.Inquiries i ON i.InquiryID = m.InquiryID " +
                             "WHERE i.CustomerID = ? " +
-                            "  AND i.InquiryID IN (SELECT DISTINCT InquiryID FROM dbo.Messages) " +
-                            "ORDER BY i.CreatedAt DESC";
+                            "GROUP BY m.InquiryID, i.CustomerID, i.MedicineName " +
+                            "ORDER BY LastMessageTime DESC";
                 }
 
                 PreparedStatement stmt = con.prepareStatement(query);
@@ -144,40 +141,34 @@ public class FragmentChats extends Fragment {
                     stmt.setInt(2, currentUserId);
                 } else {
                     stmt.setInt(1, currentUserId);
-                    stmt.setInt(2, currentUserId);
-                    stmt.setInt(3, currentUserId);
                 }
 
                 ResultSet rs = stmt.executeQuery();
 
                 while (rs.next()) {
                     int inquiryId = rs.getInt("InquiryID");
-                    int customerId = rs.getInt("CustomerID");
-                    String customerName = rs.getString("CustomerName");
                     String medicineName = rs.getString("MedicineName");
-                    String description = rs.getString("Description");
-                    boolean hasImage = rs.getInt("HasImage") == 1;
-                    String city = rs.getString("City");
-                    String barangay = rs.getString("Barangay");
-                    String district = rs.getString("District");
-                    String status = rs.getString("Status");
-                    String createdAt = rs.getString("CreatedAtStr");
-                    int replyCount = rs.getInt("ReplyCount");
-                    double lat = rs.getDouble("Latitude");
-                    double lng = rs.getDouble("Longitude");
+                    String lastMsg = rs.getString("LastMessageText");
+                    String timeStr = rs.getString("TimeStr");
 
-                    InquiryModel model = new InquiryModel(
-                            inquiryId, customerId, customerName, medicineName, description, hasImage, city, barangay, district, status, createdAt, replyCount, lat, lng
-                    );
-                    model.setHasCustomerMessage(true);
-                    model.setHasPharmacyMessage(true);
+                    int partnerId;
+                    String partnerName;
 
-                    if (!"pharmacy".equalsIgnoreCase(userRole)) {
-                        int lastPharmId = rs.getInt("LastPharmacyID");
-                        String lastPharmName = rs.getString("LastPharmacyName");
-                        model.setLastPharmacyId(lastPharmId);
-                        model.setLastPharmacyName(lastPharmName);
+                    if ("pharmacy".equalsIgnoreCase(userRole)) {
+                        partnerId = rs.getInt("CustomerID");
+                        partnerName = rs.getString("CustomerName");
+                    } else {
+                        partnerId = rs.getInt("LastPharmacyID");
+                        partnerName = rs.getString("LastPharmacyName");
                     }
+
+                    if (partnerName == null || partnerName.trim().isEmpty()) {
+                        partnerName = "pharmacy".equalsIgnoreCase(userRole) ? "Patient" : "Pharmacy Store";
+                    }
+
+                    ChatThreadModel model = new ChatThreadModel(
+                            inquiryId, partnerId, partnerName, medicineName, lastMsg, timeStr
+                    );
 
                     tempChats.add(model);
                 }
@@ -190,9 +181,9 @@ public class FragmentChats extends Fragment {
                     chatList.addAll(tempChats);
                     if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
                     if (pbChatsLoading != null) pbChatsLoading.setVisibility(View.GONE);
-                    if (inquiryAdapter != null) inquiryAdapter.notifyDataSetChanged();
+                    if (chatThreadAdapter != null) chatThreadAdapter.notifyDataSetChanged();
                     if (tvChatsEmptyState != null) {
-                        tvChatsEmptyState.setText("No active chat communications yet.");
+                        tvChatsEmptyState.setText("No active chat conversations yet.");
                         tvChatsEmptyState.setVisibility(chatList.isEmpty() ? View.VISIBLE : View.GONE);
                     }
                 });

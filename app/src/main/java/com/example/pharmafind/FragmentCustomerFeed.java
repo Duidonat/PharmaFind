@@ -493,6 +493,8 @@ public class FragmentCustomerFeed extends Fragment {
             });
         }
 
+        android.widget.CheckBox cbIsUrgent = dialogView.findViewById(R.id.cbIsUrgent);
+
         if (btnPostInquiry != null) {
             btnPostInquiry.setOnClickListener(v -> {
                 String medicineName = etMedicineName.getText().toString().trim();
@@ -501,6 +503,10 @@ public class FragmentCustomerFeed extends Fragment {
                 if (medicineName.isEmpty()) {
                     UiMessage.show(dialog, "Please enter the medicine name");
                     return;
+                }
+
+                if (cbIsUrgent != null && cbIsUrgent.isChecked()) {
+                    description = "🚨 URGENT: " + description;
                 }
 
                 btnPostInquiry.setEnabled(false);

@@ -172,19 +172,36 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Section Title -->
-            <TextView
-                android:id="@+id/tvRepliesHeader"
-                android:layout_width="wrap_content"
+            <!-- Section Title & Sort Action -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:drawablePadding="8dp"
-                android:drawableStart="@drawable/ic_forum_20"
-                android:drawableTint="@color/primary_teal"
-                android:text="Pharmacy Responses"
-                android:textColor="@color/black"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tvRepliesHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:drawablePadding="8dp"
+                    android:drawableStart="@drawable/ic_forum_20"
+                    android:drawableTint="@color/primary_teal"
+                    android:text="Pharmacy Responses"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSortPrice"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sort: Price 💰"
+                    android:textSize="11sp" />
+
+            </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvReplies"

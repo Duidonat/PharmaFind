@@ -182,6 +182,20 @@ public class ActivityInquiryThread extends AppCompatActivity {
             cardPharmacyReplyComposer.setVisibility(View.GONE);
         }
 
+        com.google.android.material.chip.Chip chipSortPrice = findViewById(R.id.chipSortPrice);
+        if (chipSortPrice != null) {
+            chipSortPrice.setOnClickListener(v -> {
+                if (replyList == null || replyList.isEmpty()) return;
+                java.util.Collections.sort(replyList, (a, b) -> {
+                    double pA = parsePrice(a.getPrice());
+                    double pB = parsePrice(b.getPrice());
+                    return Double.compare(pA, pB);
+                });
+                if (replyAdapter != null) replyAdapter.notifyDataSetChanged();
+                UiMessage.show(this, "Sorted by Lowest Price!");
+            });
+        }
+
         loadInquiryDetails();
         loadPharmacyReplies();
     }
@@ -622,6 +636,17 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 }
             });
         });
+    }
+
+    private double parsePrice(String priceStr) {
+        if (priceStr == null) return Double.MAX_VALUE;
+        try {
+            String clean = priceStr.replaceAll("[^0-9.]", "");
+            if (clean.isEmpty()) return Double.MAX_VALUE;
+            return Double.parseDouble(clean);
+        } catch (Exception e) {
+            return Double.MAX_VALUE;
+        }
     }
 
     private void showFullScreenImageDialog(Bitmap bitmap) {

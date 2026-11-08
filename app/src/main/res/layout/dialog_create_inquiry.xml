@@ -79,11 +79,11 @@
     <EditText
         android:id="@+id/etDescription"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="90dp"
         android:layout_marginTop="12dp"
         android:background="@drawable/edittext_background"
         android:gravity="top|start"
-        android:hint="Describe quantity or urgency (e.g., Need 1 strip of 10 tablets urgently in Barangay Marawoy)..."
+        android:hint="Describe quantity or details (e.g., Need 1 strip of 10 tablets in Barangay Marawoy)..."
         android:inputType="textMultiLine"
         android:padding="12dp"
         android:textColor="@color/black"
@@ -91,14 +91,27 @@
         android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/etMedicineName" />
 
+    <!-- Urgent Checkbox Row -->
+    <CheckBox
+        android:id="@+id/cbIsUrgent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="🚨 Mark as Urgent / Emergency Request"
+        android:textColor="@color/error_red"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/etDescription" />
+
     <!-- Photo Preview Container -->
     <FrameLayout
         android:id="@+id/photoPreviewContainer"
         android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:layout_marginTop="12dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="8dp"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/etDescription">
+        app:layout_constraintTop_toBottomOf="@id/cbIsUrgent">
 
         <ImageView
             android:id="@+id/ivAttachedPhoto"
