@@ -1,30 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:endX="85.84757"
-                android:endY="92.4963"
-                android:startX="42.9492"
-                android:startY="49.59793"
-                android:type="linear">
-                <item
-                    android:color="#44000000"
-                    android:offset="0.0" />
-                <item
-                    android:color="#00000000"
-                    android:offset="1.0" />
-            </gradient>
-        </aapt:attr>
-    </path>
+
+    <!-- Oval Drop Shadow at Bottom -->
+    <path
+        android:fillColor="#332B7683"
+        android:pathData="M54,84.5 m-10,0 a10,2.5 0 1,0 20,0 a10,2.5 0 1,0 -20,0" />
+
+    <!-- Outer Pin Body - Left Half Light Teal -->
+    <path
+        android:fillColor="#3A8E9D"
+        android:pathData="M54,22 C39.5,22 28,33.5 28,48 C28,65 48,82 54,84 Z" />
+
+    <!-- Outer Pin Body - Right Half Dark Teal -->
+    <path
+        android:fillColor="#2B7683"
+        android:pathData="M54,22 C68.5,22 80,33.5 80,48 C80,65 60,82 54,84 Z" />
+
+    <!-- Inner White Circular Disk -->
     <path
         android:fillColor="#FFFFFF"
-        android:fillType="nonZero"
-        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
-        android:strokeWidth="1"
-        android:strokeColor="#00000000" />
+        android:pathData="M54,47 m-17,0 a17,17 0 1,0 34,0 a17,17 0 1,0 -34,0" />
+
+    <!-- Pill Capsule - Cyan Top-Right Half -->
+    <path
+        android:fillColor="#50C2C9"
+        android:strokeColor="#2B7683"
+        android:strokeWidth="1.5"
+        android:pathData="M54,47 L62,39 C64.8,36.2 64.8,31.8 62,29 C59.2,26.2 54.8,26.2 52,29 L44,37 Z" />
+
+    <!-- Pill Capsule - Yellow Bottom-Left Half -->
+    <path
+        android:fillColor="#FFD600"
+        android:strokeColor="#2B7683"
+        android:strokeWidth="1.5"
+        android:pathData="M54,47 L44,37 C41.2,39.8 41.2,44.2 44,47 C46.8,49.8 51.2,49.8 54,47 Z" />
+
+    <!-- Pill Center Dividing Line -->
+    <path
+        android:strokeColor="#2B7683"
+        android:strokeWidth="1.5"
+        android:pathData="M44,37 L54,47" />
+
+    <!-- Glossy White Highlight Curve on Pill -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.4"
+        android:strokeLineCap="round"
+        android:pathData="M52.8,29.5 C55.5,28 59.5,29.2 61,30.8" />
+
 </vector>

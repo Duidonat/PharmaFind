@@ -20,7 +20,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Edit Location &amp; GPS Pin"
+                android:text="Edit Profile &amp; Location"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold"
@@ -36,6 +36,77 @@
                 app:tint="@color/text_gray" />
 
         </RelativeLayout>
+
+        <!-- Avatar Selector Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Choose Profile Avatar"
+            android:textColor="@color/black"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="ℹ️ Storage Notice: Profile avatars use lightweight vector presets to preserve free database quota (33MB limit)."
+            android:textColor="@color/text_gray"
+            android:textSize="11sp" />
+
+        <LinearLayout
+            android:id="@+id/llAvatarOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imgAvatar1"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="#3A8E9D"
+                android:padding="10dp"
+                android:src="@drawable/ic_person"
+                app:tint="@color/white" />
+
+            <ImageView
+                android:id="@+id/imgAvatar2"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="#2E7D32"
+                android:padding="10dp"
+                android:src="@drawable/ic_person"
+                app:tint="@color/white" />
+
+            <ImageView
+                android:id="@+id/imgAvatar3"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="#7B1FA2"
+                android:padding="10dp"
+                android:src="@drawable/ic_person"
+                app:tint="@color/white" />
+
+            <ImageView
+                android:id="@+id/imgAvatar4"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@drawable/circle_background"
+                android:backgroundTint="#1976D2"
+                android:padding="10dp"
+                android:src="@drawable/ic_local_pharmacy"
+                app:tint="@color/white" />
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"

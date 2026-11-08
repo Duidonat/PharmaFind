@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+
+    <!-- Oval Drop Shadow under Pin -->
+    <path
+        android:fillColor="#332B7683"
+        android:pathData="M50,91.5 m-12,0 a12,3 0 1,0 24,0 a12,3 0 1,0 -24,0" />
+
+    <!-- Outer Pin Body - Left Half Light Teal -->
+    <path
+        android:fillColor="#3A8E9D"
+        android:pathData="M50,14 C31.77,14 17,28.77 17,47 C17,68 43,89.5 50,92 Z" />
+
+    <!-- Outer Pin Body - Right Half Dark Teal -->
+    <path
+        android:fillColor="#2B7683"
+        android:pathData="M50,14 C68.23,14 83,28.77 83,47 C83,68 57,89.5 50,92 Z" />
+
+    <!-- Inner White Circular Disk -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M50,45.5 m-21.5,0 a21.5,21.5 0 1,0 43,0 a21.5,21.5 0 1,0 -43,0" />
+
+    <!-- Pill Capsule - Cyan Top-Right Half -->
+    <path
+        android:fillColor="#50C2C9"
+        android:strokeColor="#2B7683"
+        android:strokeWidth="1.8"
+        android:pathData="M50,45.5 L60,35.5 C63.5,32 63.5,26.5 60,23 C56.5,19.5 51,19.5 47.5,23 L37.5,33 Z" />
+
+    <!-- Pill Capsule - Yellow Bottom-Left Half -->
+    <path
+        android:fillColor="#FFD600"
+        android:strokeColor="#2B7683"
+        android:strokeWidth="1.8"
+        android:pathData="M50,45.5 L37.5,33 C34,36.5 34,42 37.5,45.5 C41,49 46.5,49 50,45.5 Z" />
+
+    <!-- Pill Center Dividing Line -->
+    <path
+        android:strokeColor="#2B7683"
+        android:strokeWidth="1.8"
+        android:pathData="M37.5,33 L50,45.5" />
+
+    <!-- Glossy White Highlight Curve on Pill -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M48.5,23.5 C52,21.5 57,23 59,25" />
+
+</vector>

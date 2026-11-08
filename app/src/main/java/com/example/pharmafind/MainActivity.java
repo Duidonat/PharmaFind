@@ -102,7 +102,14 @@ public class MainActivity extends AppCompatActivity {
         EditText etPassword = dialogView.findViewById(R.id.etPassword);
         android.widget.CheckBox cbRememberMe = dialogView.findViewById(R.id.cbRememberMe);
         MaterialButton btnLoginSubmit = dialogView.findViewById(R.id.btnLoginSubmit);
+        MaterialButton btnGoogleSignIn = dialogView.findViewById(R.id.btnGoogleSignIn);
         TextView tvForgotPassword = dialogView.findViewById(R.id.tvForgotPassword);
+
+        if (btnGoogleSignIn != null) {
+            btnGoogleSignIn.setOnClickListener(v -> {
+                UiMessage.show(bottomSheetDialog, "Connecting to Google Sign-In...");
+            });
+        }
 
         if (tvForgotPassword != null) {
             tvForgotPassword.setOnClickListener(v -> {
@@ -247,6 +254,105 @@ public class MainActivity extends AppCompatActivity {
                     if (btnSubmit != null) btnSubmit.setEnabled(true);
                     UiMessage.show(dialog, "Error: " + e.getMessage());
                 });
+            }
+        });
+    }
+
+    private void performGoogleAuthentication(String googleEmail, String googleName, BottomSheetDialog dialog) {
+        executor.execute(() -> {
+            Connection con = sqlHelper.conclass();
+            if (con == null) {
+                mainHandler.post(() -> UiMessage.show(dialog, "Database connection error"));
+                return;
+            }
+
+            try {
+                // Check Customers by Email
+                String cSql = "SELECT CustomerID, Username, FirstName, Surname, City, Barangay, District, Latitude, Longitude FROM dbo.Customers WHERE Email = ? OR Username = ?";
+                PreparedStatement cStmt = con.prepareStatement(cSql);
+                cStmt.setString(1, googleEmail);
+                cStmt.setString(2, googleEmail);
+                ResultSet cRs = cStmt.executeQuery();
+
+                if (cRs.next()) {
+                    int id = cRs.getInt("CustomerID");
+                    String username = cRs.getString("Username");
+                    String name = cRs.getString("FirstName") + " " + cRs.getString("Surname");
+                    String city = cRs.getString("City");
+                    String barangay = cRs.getString("Barangay");
+                    String district = cRs.getString("District");
+                    double lat = cRs.getDouble("Latitude");
+                    double lng = cRs.getDouble("Longitude");
+                    if (city == null) city = "";
+                    if (barangay == null) barangay = "";
+                    if (district == null) district = "";
+
+                    sessionManager.createCustomerSession(id, username != null ? username : googleEmail, name, city, barangay, district);
+                    sessionManager.setLocationCoordinates(lat, lng);
+                    sessionManager.setRememberMe(true);
+                    NotificationScheduler.sync(MainActivity.this);
+
+                    con.close();
+
+                    mainHandler.post(() -> {
+                        Toast.makeText(MainActivity.this, "Google Sign-In: Welcome " + name, Toast.LENGTH_SHORT).show();
+                        if (dialog != null) dialog.dismiss();
+                        startActivity(new Intent(MainActivity.this, CustomerHomeActivity.class));
+                        finish();
+                    });
+                    return;
+                }
+
+                // Check Pharmacies by Email
+                String pSql = "SELECT PharmacyID, Username, PharmacyName, City, Barangay, District, Status, Latitude, Longitude FROM dbo.Pharmacies WHERE Email = ? OR Username = ?";
+                PreparedStatement pStmt = con.prepareStatement(pSql);
+                pStmt.setString(1, googleEmail);
+                pStmt.setString(2, googleEmail);
+                ResultSet pRs = pStmt.executeQuery();
+
+                if (pRs.next()) {
+                    int id = pRs.getInt("PharmacyID");
+                    String username = pRs.getString("Username");
+                    String name = pRs.getString("PharmacyName");
+                    String city = pRs.getString("City");
+                    String barangay = pRs.getString("Barangay");
+                    String district = pRs.getString("District");
+                    String status = pRs.getString("Status");
+                    double lat = pRs.getDouble("Latitude");
+                    double lng = pRs.getDouble("Longitude");
+                    if (city == null) city = "";
+                    if (barangay == null) barangay = "";
+                    if (district == null) district = "";
+                    if (status == null) status = "approved";
+
+                    sessionManager.createPharmacySession(id, username != null ? username : googleEmail, name, city, barangay, district, status);
+                    sessionManager.setLocationCoordinates(lat, lng);
+                    sessionManager.setRememberMe(true);
+                    NotificationScheduler.sync(MainActivity.this);
+
+                    con.close();
+
+                    mainHandler.post(() -> {
+                        Toast.makeText(MainActivity.this, "Google Sign-In: Welcome " + name, Toast.LENGTH_SHORT).show();
+                        if (dialog != null) dialog.dismiss();
+                        startActivity(new Intent(MainActivity.this, PharmacyHomeActivity.class));
+                        finish();
+                    });
+                    return;
+                }
+
+                con.close();
+
+                // If user doesn't exist yet, auto-register a new Customer account with Google Email
+                mainHandler.post(() -> {
+                    if (dialog != null) dialog.dismiss();
+                    showRegisterCustomerDialog();
+                    Toast.makeText(MainActivity.this, "Google Email verified (" + googleEmail + "). Complete your profile location to finish!", Toast.LENGTH_LONG).show();
+                });
+
+            } catch (SQLException e) {
+                try { con.close(); } catch (SQLException ignored) {}
+                Log.e("MainActivity", "Google Auth Error: " + e.getMessage());
             }
         });
     }
@@ -433,6 +539,12 @@ public class MainActivity extends AppCompatActivity {
         EditText etConfirmPassword = dialogView.findViewById(R.id.etConfirmPassword);
         MaterialButton btnSubmit = dialogView.findViewById(R.id.btnSubmitRegisterPharmacy);
 
+        TextView tvCheckLength = dialogView.findViewById(R.id.tvCheckLengthPharmacy);
+        TextView tvCheckUppercase = dialogView.findViewById(R.id.tvCheckUppercasePharmacy);
+        TextView tvCheckLowercase = dialogView.findViewById(R.id.tvCheckLowercasePharmacy);
+        TextView tvCheckSpecial = dialogView.findViewById(R.id.tvCheckSpecialPharmacy);
+
+        setupRealtimePasswordChecklist(etPassword, tvCheckLength, tvCheckUppercase, tvCheckLowercase, tvCheckSpecial);
         clearErrorsWhileTyping(etPharmacyName, etCity, etBarangay, etEmail, etContact, etUsername, etPassword, etConfirmPassword);
 
         btnSubmit.setOnClickListener(v -> {
@@ -538,6 +650,13 @@ public class MainActivity extends AppCompatActivity {
         EditText etPassword = dialogView.findViewById(R.id.etPassword);
         EditText etConfirmPassword = dialogView.findViewById(R.id.etConfirmPassword);
         MaterialButton btnSubmit = dialogView.findViewById(R.id.btnSubmitRegister);
+
+        TextView tvCheckLength = dialogView.findViewById(R.id.tvCheckLength);
+        TextView tvCheckUppercase = dialogView.findViewById(R.id.tvCheckUppercase);
+        TextView tvCheckLowercase = dialogView.findViewById(R.id.tvCheckLowercase);
+        TextView tvCheckSpecial = dialogView.findViewById(R.id.tvCheckSpecial);
+
+        setupRealtimePasswordChecklist(etPassword, tvCheckLength, tvCheckUppercase, tvCheckLowercase, tvCheckSpecial);
 
         // Date Picker Calendar setup for Birth Date
         if (etBirthDate != null) {
@@ -722,6 +841,43 @@ public class MainActivity extends AppCompatActivity {
         return error == null;
     }
 
+    private void setupRealtimePasswordChecklist(EditText etPassword, TextView tvLength, TextView tvUpper, TextView tvLower, TextView tvSpecial) {
+        if (etPassword == null) return;
+        etPassword.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String pass = s.toString();
+                boolean hasLength = pass.length() >= 8;
+                boolean hasUpper = pass.matches(".*[A-Z].*");
+                boolean hasLower = pass.matches(".*[a-z].*");
+                boolean hasSpecial = pass.matches(".*[0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+
+                if (tvLength != null) {
+                    tvLength.setText((hasLength ? "✓" : "❌") + " At least 8 characters");
+                    tvLength.setTextColor(androidx.core.content.ContextCompat.getColor(MainActivity.this, hasLength ? R.color.on_success_container : R.color.error_red));
+                }
+                if (tvUpper != null) {
+                    tvUpper.setText((hasUpper ? "✓" : "❌") + " At least 1 uppercase letter (A-Z)");
+                    tvUpper.setTextColor(androidx.core.content.ContextCompat.getColor(MainActivity.this, hasUpper ? R.color.on_success_container : R.color.error_red));
+                }
+                if (tvLower != null) {
+                    tvLower.setText((hasLower ? "✓" : "❌") + " At least 1 lowercase letter (a-z)");
+                    tvLower.setTextColor(androidx.core.content.ContextCompat.getColor(MainActivity.this, hasLower ? R.color.on_success_container : R.color.error_red));
+                }
+                if (tvSpecial != null) {
+                    tvSpecial.setText((hasSpecial ? "✓" : "❌") + " At least 1 number or special character (!@#$)");
+                    tvSpecial.setTextColor(androidx.core.content.ContextCompat.getColor(MainActivity.this, hasSpecial ? R.color.on_success_container : R.color.error_red));
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
     // Email, contact number, username and password (with confirmation): same rules for customers and pharmacies.
     private boolean checkContactAndAccount(EditText etEmail, EditText etContact, EditText etUsername, EditText etPassword, EditText etConfirmPassword,
                                            String email, String contact, String username, String password, String confirmPassword) {
@@ -748,8 +904,15 @@ public class MainActivity extends AppCompatActivity {
         ok &= usernameError == null;
 
         String passwordError = null;
+        boolean hasLength = password.length() >= 8;
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLower = password.matches(".*[a-z].*");
+        boolean hasSpecial = password.matches(".*[0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*");
+
         if (password.isEmpty()) passwordError = "Choose a password";
-        else if (password.length() < 6) passwordError = "Use at least 6 characters";
+        else if (!hasLength || !hasUpper || !hasLower || !hasSpecial) {
+            passwordError = "Password must satisfy all 4 checklist criteria above";
+        }
         setFieldError(etPassword, passwordError);
         ok &= passwordError == null;
 

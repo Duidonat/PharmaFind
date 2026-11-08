@@ -163,6 +163,8 @@ public class FragmentCustomerTabAbout extends Fragment {
         });
     }
 
+    private String selectedAvatarId = "avatar_1";
+
     private void showEditProfileDialog() {
         if (getContext() == null) return;
         BottomSheetDialog dialog = new BottomSheetDialog(requireContext());
@@ -176,6 +178,27 @@ public class FragmentCustomerTabAbout extends Fragment {
         dialogTvPinCoords = dialogView.findViewById(R.id.tvCustomerPinCoordinates);
         dialogEtLat = dialogView.findViewById(R.id.etLatCustomerEdit);
         dialogEtLng = dialogView.findViewById(R.id.etLngCustomerEdit);
+
+        View imgAvatar1 = dialogView.findViewById(R.id.imgAvatar1);
+        View imgAvatar2 = dialogView.findViewById(R.id.imgAvatar2);
+        View imgAvatar3 = dialogView.findViewById(R.id.imgAvatar3);
+        View imgAvatar4 = dialogView.findViewById(R.id.imgAvatar4);
+
+        selectedAvatarId = sessionManager.getAvatar();
+
+        View.OnClickListener avatarClickListener = v -> {
+            int id = v.getId();
+            if (id == R.id.imgAvatar1) selectedAvatarId = "avatar_1";
+            else if (id == R.id.imgAvatar2) selectedAvatarId = "avatar_2";
+            else if (id == R.id.imgAvatar3) selectedAvatarId = "avatar_3";
+            else if (id == R.id.imgAvatar4) selectedAvatarId = "avatar_4";
+            UiMessage.show(dialogView, "Selected Avatar Preset: " + selectedAvatarId);
+        };
+
+        if (imgAvatar1 != null) imgAvatar1.setOnClickListener(avatarClickListener);
+        if (imgAvatar2 != null) imgAvatar2.setOnClickListener(avatarClickListener);
+        if (imgAvatar3 != null) imgAvatar3.setOnClickListener(avatarClickListener);
+        if (imgAvatar4 != null) imgAvatar4.setOnClickListener(avatarClickListener);
 
         MaterialButton btnUseGps = dialogView.findViewById(R.id.btnUseCustomerGPSPin);
         MaterialButton btnPickMap = dialogView.findViewById(R.id.btnPickCustomerMap);
@@ -234,7 +257,7 @@ public class FragmentCustomerTabAbout extends Fragment {
                 }
 
                 btnSave.setEnabled(false);
-                saveCustomerProfileToDB(city, barangay, district, lat, lng, dialog, btnSave);
+                saveCustomerProfileToDB(city, barangay, district, lat, lng, selectedAvatarId, dialog, btnSave);
             });
         }
 
@@ -267,7 +290,7 @@ public class FragmentCustomerTabAbout extends Fragment {
         });
     }
 
-    private void saveCustomerProfileToDB(String city, String barangay, String district, double lat, double lng, BottomSheetDialog dialog, MaterialButton btnSave) {
+    private void saveCustomerProfileToDB(String city, String barangay, String district, double lat, double lng, String avatarId, BottomSheetDialog dialog, MaterialButton btnSave) {
         executor.execute(() -> {
             Connection con = sqlHelper.conclass();
             if (con == null) {
@@ -279,28 +302,29 @@ public class FragmentCustomerTabAbout extends Fragment {
             }
 
             try {
-                // DML COMMAND 3: UPDATE (Modifies existing Customer record location details
-                // in dbo.Customers)
                 String query = "UPDATE dbo.Customers SET City = ?, Barangay = ?, " +
-                        "District = ?, Latitude = ?, Longitude = ? WHERE CustomerID = ?";
+                        "District = ?, Latitude = ?, Longitude = ?, ProfilePicture = ? WHERE CustomerID = ?";
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setString(1, city);
                 stmt.setString(2, barangay);
                 stmt.setString(3, district);
-                stmt.setDouble(4, lat); 
+                stmt.setDouble(4, lat);
                 stmt.setDouble(5, lng);
-                stmt.setInt(6, sessionManager.getUserId());
+                stmt.setString(6, avatarId);
+                stmt.setInt(7, sessionManager.getUserId());
 
                 int rows = stmt.executeUpdate();
                 con.close();
 
                 mainHandler.post(() -> {
+                    if (!isAdded()) return;
                     if (btnSave != null) btnSave.setEnabled(true);
                     if (rows > 0) {
                         sessionManager.createCustomerSession(sessionManager.getUserId(), sessionManager.getUsername(), sessionManager.getFullName(), city, barangay, district);
                         sessionManager.setLocationCoordinates(lat, lng);
+                        sessionManager.setAvatar(avatarId);
 
-                        UiMessage.show(this, "Location Profile & GPS Pin Updated!");
+                        UiMessage.show(this, "Profile & Avatar Preset Updated!");
                         dialog.dismiss();
                         loadCustomerDetails();
                     } else {

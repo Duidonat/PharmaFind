@@ -453,6 +453,54 @@
                     android:inputType="textPassword"
                     android:maxLength="64" />
 
+                <!-- Password Real-Time Checklist -->
+                <LinearLayout
+                    android:id="@+id/llPasswordChecklistPharmacy"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="#E8F6F8"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <TextView
+                        android:id="@+id/tvCheckLengthPharmacy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="❌ At least 8 characters"
+                        android:textColor="@color/error_red"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tvCheckUppercasePharmacy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="❌ At least 1 uppercase letter (A-Z)"
+                        android:textColor="@color/error_red"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tvCheckLowercasePharmacy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="❌ At least 1 lowercase letter (a-z)"
+                        android:textColor="@color/error_red"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/tvCheckSpecialPharmacy"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="❌ At least 1 number or special character (!@#$)"
+                        android:textColor="@color/error_red"
+                        android:textSize="11sp" />
+
+                </LinearLayout>
+
                 <!-- Shown under the field by MainActivity.setFieldError() -->
                 <TextView
                     android:layout_width="match_parent"

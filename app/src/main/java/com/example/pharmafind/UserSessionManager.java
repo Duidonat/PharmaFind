@@ -19,6 +19,7 @@ public class UserSessionManager {
     private static final String KEY_LONGITUDE = "longitude";
     private static final String KEY_REMEMBER_ME = "rememberMe";
     private static final String KEY_PROXIMITY_RADIUS_KM = "proximity_radius_km";
+    private static final String KEY_AVATAR = "avatar";
 
     private final SharedPreferences pref;
     private final SharedPreferences.Editor editor;
@@ -118,6 +119,15 @@ public class UserSessionManager {
 
     public void setProximityRadiusKm(double radiusKm) {
         editor.putFloat(KEY_PROXIMITY_RADIUS_KM, (float) radiusKm);
+        editor.apply();
+    }
+
+    public String getAvatar() {
+        return pref.getString(KEY_AVATAR, "avatar_1");
+    }
+
+    public void setAvatar(String avatarId) {
+        editor.putString(KEY_AVATAR, avatarId != null ? avatarId : "avatar_1");
         editor.apply();
     }
 
