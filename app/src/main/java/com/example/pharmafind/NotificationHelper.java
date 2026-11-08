@@ -64,16 +64,20 @@ public class NotificationHelper {
         urgent.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
         manager.createNotificationChannel(urgent);
 
-        // Chats - new direct messages (DEFAULT importance)
+        // Chats - new direct messages (HIGH importance, sound + heads-up banner)
         NotificationChannel chats = new NotificationChannel(
-                CHANNEL_CHATS_ID, CHANNEL_CHATS_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+                CHANNEL_CHATS_ID, CHANNEL_CHATS_NAME, NotificationManager.IMPORTANCE_HIGH);
         chats.setDescription(CHANNEL_CHATS_DESC);
+        chats.enableLights(true);
+        chats.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
         manager.createNotificationChannel(chats);
 
-        // Replies - pharmacy responses to customer inquiries (DEFAULT importance)
+        // Replies - pharmacy responses to customer inquiries (HIGH importance, sound + heads-up banner)
         NotificationChannel replies = new NotificationChannel(
-                CHANNEL_REPLIES_ID, CHANNEL_REPLIES_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+                CHANNEL_REPLIES_ID, CHANNEL_REPLIES_NAME, NotificationManager.IMPORTANCE_HIGH);
         replies.setDescription(CHANNEL_REPLIES_DESC);
+        replies.enableLights(true);
+        replies.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
         manager.createNotificationChannel(replies);
 
         // General - system notifications (LOW importance, no sound)
@@ -125,6 +129,8 @@ public class NotificationHelper {
         // Set priority based on channel
         switch (channel) {
             case CHANNEL_URGENT_ID:
+            case CHANNEL_CHATS_ID:
+            case CHANNEL_REPLIES_ID:
                 builder.setPriority(NotificationCompat.PRIORITY_HIGH);
                 break;
             case CHANNEL_GENERAL_ID:
