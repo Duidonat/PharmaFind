@@ -156,6 +156,29 @@ public class NotificationHelper {
         }
     }
 
+    public static void triggerRenderPushNotification(Context context, String title, String body, String type) {
+        if (context == null) return;
+        try {
+            String url = "https://pharmafind-push-server.onrender.com/notify";
+            org.json.JSONObject jsonBody = new org.json.JSONObject();
+            jsonBody.put("title", title);
+            jsonBody.put("body", body);
+            jsonBody.put("type", type);
+
+            com.android.volley.toolbox.JsonObjectRequest request = new com.android.volley.toolbox.JsonObjectRequest(
+                com.android.volley.Request.Method.POST,
+                url,
+                jsonBody,
+                response -> android.util.Log.d("NotificationHelper", "Render push triggered successfully"),
+                error -> android.util.Log.e("NotificationHelper", "Render push trigger failed: " + error.getMessage())
+            );
+
+            com.android.volley.toolbox.Volley.newRequestQueue(context.getApplicationContext()).add(request);
+        } catch (Exception e) {
+            android.util.Log.e("NotificationHelper", "Error building Render push request: " + e.getMessage());
+        }
+    }
+
     // --- Convenience wrappers ------------------------------------------------------
 
     /** Nearby customer request - urgent, high priority. */
