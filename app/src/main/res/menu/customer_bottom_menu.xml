@@ -3,10 +3,20 @@
     <item
         android:id="@+id/nav_feed"
         android:icon="@drawable/ic_forum"
-        android:title="Requests Feed" />
+        android:title="Feed" />
+
+    <item
+        android:id="@+id/nav_customer_notifications"
+        android:icon="@drawable/ic_notifications"
+        android:title="Responses" />
+
+    <item
+        android:id="@+id/nav_chats"
+        android:icon="@drawable/ic_chat_bubble_outline"
+        android:title="Chats" />
 
     <item
         android:id="@+id/nav_profile"
         android:icon="@drawable/ic_person"
-        android:title="My Profile" />
+        android:title="Profile" />
 </menu>

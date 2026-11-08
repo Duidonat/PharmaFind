@@ -4,9 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="20dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/white">
+    app:cardBackgroundColor="@color/white"
+    app:strokeColor="#E0E8EA"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -79,6 +81,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:drawablePadding="8dp"
+            app:drawableStartCompat="@drawable/decorative_pill"
             android:text="Need: Biogesic Paracetamol 500mg"
             android:textColor="@color/black"
             android:textSize="16sp"
@@ -93,18 +97,21 @@
             android:textColor="@color/black"
             android:textSize="14sp" />
 
-        <!-- Photo Attachment Indicator (the photo itself only shows on the request screen,
-             and only to the requester and pharmacies) -->
+        <!-- Photo Attachment Indicator -->
         <TextView
             android:id="@+id/tvPhotoAttached"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:drawablePadding="4dp"
+            android:background="@drawable/bg_badge"
+            android:backgroundTint="#F4F8F8"
+            android:drawablePadding="6dp"
             android:drawableStart="@drawable/ic_attach_file_14"
-            android:drawableTint="@color/text_gray"
-            android:text="Photo attached"
-            android:textColor="@color/text_gray"
+            android:drawableTint="@color/primary_dark"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="Prescription Attached"
+            android:textColor="@color/primary_dark"
             android:textSize="12sp"
             android:visibility="gone" />
 

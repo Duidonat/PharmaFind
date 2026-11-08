@@ -264,6 +264,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         if (finalBitmap != null) {
                             ivInquiryImage.setImageBitmap(finalBitmap);
                             ivInquiryImage.setVisibility(View.VISIBLE);
+                            ivInquiryImage.setOnClickListener(v -> showFullScreenImageDialog(finalBitmap));
                         } else {
                             ivInquiryImage.setVisibility(View.GONE);
                         }
@@ -323,8 +324,12 @@ public class ActivityInquiryThread extends AppCompatActivity {
 
             try {
                 List<PharmacyReplyModel> tempReplies = new ArrayList<>();
+                String userRole = sessionManager.getRole();
+                int currentUserId = sessionManager.getUserId();
+
                 // DML COMMAND 5: SELECT with JOIN, WHERE, and ORDER BY (Retrieves related records
                 // from PharmacyReplies and Pharmacies)
+                // Note: Pharmacies only see their own responses to prevent unfair competition.
                 String query = "SELECT r.ReplyID, r.InquiryID, r.PharmacyID, p.PharmacyName, " +
                         "r.AvailabilityStatus, r.Price, r.Note, CONVERT(VARCHAR, r.CreatedAt, 120) " +
                         "AS CreatedAtStr, p.City, p.Barangay, p.Contact, p.Status AS PharmacyStatus, " +
@@ -332,15 +337,18 @@ public class ActivityInquiryThread extends AppCompatActivity {
                         "FROM dbo.PharmacyReplies r " +
                         "LEFT JOIN dbo.Pharmacies p ON r.PharmacyID = p.PharmacyID " +
                         "WHERE r.InquiryID = ? " +
+                        "  AND (? = 'customer' OR r.PharmacyID = ?) " +
                         "ORDER BY r.CreatedAt ASC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, inquiryId);
+                stmt.setString(2, userRole != null ? userRole.toLowerCase() : "customer");
+                stmt.setInt(3, currentUserId);
                 ResultSet rs = stmt.executeQuery();
 
                 double userLat = sessionManager.getLatitude();
                 double userLng = sessionManager.getLongitude();
-                double[] uCoords = LocationUtils.getCoordinates(sessionManager.getCity(), sessionManager.getBarangay(), userLat, userLng);
+                double[] uCoords = LocationUtils.getCoordinates(this, sessionManager.getCity(), sessionManager.getBarangay(), userLat, userLng);
                 userLat = uCoords[0];
                 userLng = uCoords[1];
 
@@ -359,7 +367,7 @@ public class ActivityInquiryThread extends AppCompatActivity {
                     double pLat = rs.getDouble("Latitude");
                     double pLng = rs.getDouble("Longitude");
 
-                    double[] pCoords = LocationUtils.getCoordinates(city, barangay, pLat, pLng);
+                    double[] pCoords = LocationUtils.getCoordinates(this, city, barangay, pLat, pLng);
                     double finalPLat = pCoords[0];
                     double finalPLng = pCoords[1];
 
@@ -614,6 +622,22 @@ public class ActivityInquiryThread extends AppCompatActivity {
                 }
             });
         });
+    }
+
+    private void showFullScreenImageDialog(Bitmap bitmap) {
+        if (isFinishing() || bitmap == null) return;
+        android.app.Dialog dialog = new android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_fullscreen_image, null);
+        dialog.setContentView(dialogView);
+
+        ImageView ivFullscreen = dialogView.findViewById(R.id.ivFullscreenImage);
+        ImageButton btnClose = dialogView.findViewById(R.id.btnCloseFullscreen);
+
+        if (ivFullscreen != null) ivFullscreen.setImageBitmap(bitmap);
+        if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
+        if (ivFullscreen != null) ivFullscreen.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
     }
 
     @Override

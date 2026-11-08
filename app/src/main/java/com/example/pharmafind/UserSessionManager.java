@@ -18,6 +18,7 @@ public class UserSessionManager {
     private static final String KEY_LATITUDE = "latitude";
     private static final String KEY_LONGITUDE = "longitude";
     private static final String KEY_REMEMBER_ME = "rememberMe";
+    private static final String KEY_PROXIMITY_RADIUS_KM = "proximity_radius_km";
 
     private final SharedPreferences pref;
     private final SharedPreferences.Editor editor;
@@ -100,6 +101,24 @@ public class UserSessionManager {
 
     public String getStatus() {
         return pref.getString(KEY_STATUS, "approved");
+    }
+
+    public void setStatus(String status) {
+        editor.putString(KEY_STATUS, status);
+        editor.apply();
+    }
+
+    /**
+     * Configured proximity radius in kilometers for nearby request discovery.
+     * Default is 5 km. Valid range is 1-50 km.
+     */
+    public double getProximityRadiusKm() {
+        return pref.getFloat(KEY_PROXIMITY_RADIUS_KM, 5.0f);
+    }
+
+    public void setProximityRadiusKm(double radiusKm) {
+        editor.putFloat(KEY_PROXIMITY_RADIUS_KM, (float) radiusKm);
+        editor.apply();
     }
 
     public void logoutUser() {

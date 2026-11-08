@@ -16,6 +16,7 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
 
     private final List<InquiryModel> inquiryList;
     private final OnItemClickListener listener;
+    private double radiusKm = 5.0;
 
     public interface OnItemClickListener {
         void onItemClick(InquiryModel item);
@@ -24,6 +25,14 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
     public InquiryAdapter(List<InquiryModel> inquiryList, OnItemClickListener listener) {
         this.inquiryList = inquiryList;
         this.listener = listener;
+    }
+
+    /**
+     * Configure the nearby-request radius used for the "Nearby Request" badge text.
+     * Defaults to 5 km.
+     */
+    public void setRadiusKm(double radiusKm) {
+        this.radiusKm = radiusKm;
     }
 
     @NonNull
@@ -37,7 +46,15 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
     public void onBindViewHolder(@NonNull InquiryViewHolder holder, int position) {
         InquiryModel item = inquiryList.get(position);
 
-        holder.tvCustomerName.setText(item.getCustomerName() != null ? item.getCustomerName() : "Anonymous");
+        if (item.hasCustomerMessage() || item.hasPharmacyMessage()) {
+            if (item.getLastPharmacyName() != null && !item.getLastPharmacyName().trim().isEmpty()) {
+                holder.tvCustomerName.setText(item.getLastPharmacyName());
+            } else {
+                holder.tvCustomerName.setText(item.getCustomerName() != null ? item.getCustomerName() : "Chat Partner");
+            }
+        } else {
+            holder.tvCustomerName.setText(item.getCustomerName() != null ? item.getCustomerName() : "Anonymous");
+        }
 
         String location = item.getBarangay() != null && !item.getBarangay().trim().isEmpty()
                 ? "Barangay " + item.getBarangay()
@@ -65,10 +82,26 @@ public class InquiryAdapter extends RecyclerView.Adapter<InquiryAdapter.InquiryV
         holder.tvDescription.setText(item.getDescription() != null ? item.getDescription() : "");
         
         int replies = item.getReplyCount();
-        if (replies == 1) {
+        if (item.hasCustomerMessage() || item.hasPharmacyMessage()) {
+            holder.tvReplyCount.setText("💬 Active Chat • Direct Message");
+            if (holder.btnViewThread != null) {
+                holder.btnViewThread.setText("Open Chat");
+            }
+        } else if (item.isNearbyRequest() || (item.getDistanceKm() >= 0.0 && item.getDistanceKm() <= radiusKm)) {
+            holder.tvReplyCount.setText(String.format(java.util.Locale.US, "⚡ Nearby Request (< %.0f km) • %d Response%s", radiusKm, replies, replies == 1 ? "" : "s"));
+            if (holder.btnViewThread != null) {
+                holder.btnViewThread.setText("View Request");
+            }
+        } else if (replies == 1) {
             holder.tvReplyCount.setText("1 Pharmacy Responded");
+            if (holder.btnViewThread != null) {
+                holder.btnViewThread.setText("View Request");
+            }
         } else {
             holder.tvReplyCount.setText("" + replies + " Pharmacy Responses");
+            if (holder.btnViewThread != null) {
+                holder.btnViewThread.setText("View Request");
+            }
         }
 
         // Lists only show that a photo exists. The photo itself is loaded on the request screen,

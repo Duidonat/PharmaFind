@@ -51,13 +51,16 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         boolean isSentByMe = (msg.getSenderId() == currentUserId)
                 && (msg.getSenderRole() != null && msg.getSenderRole().equalsIgnoreCase(currentUserRole));
 
+        String timeStr = msg.getCreatedAt() != null ? msg.getCreatedAt() : "";
         if (isSentByMe) {
+            holder.tvMessageTime.setText(timeStr + "  ✓✓");
             holder.layoutBubbleContainer.setGravity(Gravity.END);
             holder.cardMessageBubble.setCardBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.primary_teal));
             holder.tvMessageText.setTextColor(Color.WHITE);
             holder.tvMessageTime.setTextColor(Color.parseColor("#B2DFDB"));
             holder.tvSenderName.setVisibility(View.GONE);
         } else {
+            holder.tvMessageTime.setText(timeStr);
             holder.layoutBubbleContainer.setGravity(Gravity.START);
             holder.cardMessageBubble.setCardBackgroundColor(Color.WHITE);
             holder.tvMessageText.setTextColor(Color.BLACK);

@@ -102,23 +102,31 @@ public class PharmacyReplyAdapter extends RecyclerView.Adapter<PharmacyReplyAdap
             if (listener != null) listener.onViewProfileClick(reply);
         });
 
-        holder.btnContact.setOnClickListener(v -> {
-            if (listener != null) listener.onContactClick(reply);
-        });
-
-        if (holder.btnChat != null) {
-            holder.btnChat.setOnClickListener(v -> {
-                if (listener != null) listener.onChatClick(reply);
+        if (canSelectPharmacy) {
+            holder.btnContact.setVisibility(View.VISIBLE);
+            holder.btnContact.setOnClickListener(v -> {
+                if (listener != null) listener.onContactClick(reply);
             });
-        }
 
-        if (holder.btnAcceptOffer != null) {
-            if (canSelectPharmacy) {
+            if (holder.btnChat != null) {
+                holder.btnChat.setVisibility(View.VISIBLE);
+                holder.btnChat.setOnClickListener(v -> {
+                    if (listener != null) listener.onChatClick(reply);
+                });
+            }
+
+            if (holder.btnAcceptOffer != null) {
                 holder.btnAcceptOffer.setVisibility(View.VISIBLE);
                 holder.btnAcceptOffer.setOnClickListener(v -> {
                     if (listener != null) listener.onAcceptOfferClick(reply);
                 });
-            } else {
+            }
+        } else {
+            holder.btnContact.setVisibility(View.GONE);
+            if (holder.btnChat != null) {
+                holder.btnChat.setVisibility(View.GONE);
+            }
+            if (holder.btnAcceptOffer != null) {
                 holder.btnAcceptOffer.setVisibility(View.GONE);
             }
         }

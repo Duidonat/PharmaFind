@@ -136,8 +136,46 @@ public class ActivityChat extends AppCompatActivity {
             sendMessageToDB(text);
         });
 
+        setupQuickReplyChips();
         ensureMessagesTableExists();
         loadMessagesFromDB();
+    }
+
+    private void setupQuickReplyChips() {
+        com.google.android.material.chip.ChipGroup chipGroup = findViewById(R.id.chipGroupQuickReplies);
+        if (chipGroup == null) return;
+
+        chipGroup.removeAllViews();
+        String[] replies;
+
+        if ("pharmacy".equalsIgnoreCase(sessionManager.getRole())) {
+            replies = new String[]{
+                    "💊 In Stock Now",
+                    "💰 Special Price Available",
+                    "🕗 Open until 9 PM",
+                    "📋 Prescription Required",
+                    "🚗 Ready for Pickup"
+            };
+        } else {
+            replies = new String[]{
+                    "🚀 Is this medicine available?",
+                    "📍 Can I pick it up now?",
+                    "❓ Do I need a prescription?",
+                    "💵 How much per tablet/box?",
+                    "🙏 Thank you very much!"
+            };
+        }
+
+        for (String text : replies) {
+            com.google.android.material.chip.Chip chip = new com.google.android.material.chip.Chip(this);
+            chip.setText(text);
+            chip.setCheckable(false);
+            chip.setClickable(true);
+            chip.setChipBackgroundColorResource(R.color.teal_container);
+            chip.setTextColor(androidx.core.content.ContextCompat.getColor(this, R.color.primary_dark));
+            chip.setOnClickListener(v -> sendMessageToDB(text));
+            chipGroup.addView(chip);
+        }
     }
 
     @Override
@@ -221,13 +259,22 @@ public class ActivityChat extends AppCompatActivity {
 
             try {
                 List<MessageModel> tempMessages = new ArrayList<>();
+                int currentUserId = sessionManager.getUserId();
+                String currentUserRole = sessionManager.getRole();
+
+                // Enforce participant security: Only load messages sent by or directed to the logged-in user
                 String query = "SELECT MessageID, InquiryID, SenderID, SenderRole, SenderName, ReceiverID, MessageText, CONVERT(VARCHAR, CreatedAt, 108) AS CreatedAtStr " +
                         "FROM dbo.Messages " +
                         "WHERE InquiryID = ? " +
+                        "  AND ((SenderID = ? AND LOWER(SenderRole) = LOWER(?)) OR (ReceiverID = ? AND LOWER(SenderRole) <> LOWER(?))) " +
                         "ORDER BY CreatedAt ASC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, inquiryId);
+                stmt.setInt(2, currentUserId);
+                stmt.setString(3, currentUserRole != null ? currentUserRole : "customer");
+                stmt.setInt(4, currentUserId);
+                stmt.setString(5, currentUserRole != null ? currentUserRole : "customer");
                 ResultSet rs = stmt.executeQuery();
 
                 while (rs.next()) {
@@ -272,13 +319,21 @@ public class ActivityChat extends AppCompatActivity {
 
             try {
                 List<MessageModel> tempMessages = new ArrayList<>();
+                int currentUserId = sessionManager.getUserId();
+                String currentUserRole = sessionManager.getRole();
+
                 String query = "SELECT MessageID, InquiryID, SenderID, SenderRole, SenderName, ReceiverID, MessageText, CONVERT(VARCHAR, CreatedAt, 108) AS CreatedAtStr " +
                         "FROM dbo.Messages " +
                         "WHERE InquiryID = ? " +
+                        "  AND ((SenderID = ? AND LOWER(SenderRole) = LOWER(?)) OR (ReceiverID = ? AND LOWER(SenderRole) <> LOWER(?))) " +
                         "ORDER BY CreatedAt ASC";
 
                 PreparedStatement stmt = con.prepareStatement(query);
                 stmt.setInt(1, inquiryId);
+                stmt.setInt(2, currentUserId);
+                stmt.setString(3, currentUserRole != null ? currentUserRole : "customer");
+                stmt.setInt(4, currentUserId);
+                stmt.setString(5, currentUserRole != null ? currentUserRole : "customer");
                 ResultSet rs = stmt.executeQuery();
 
                 while (rs.next()) {

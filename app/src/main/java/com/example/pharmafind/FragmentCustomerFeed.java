@@ -111,9 +111,10 @@ public class FragmentCustomerFeed extends Fragment {
             intent.putExtra("inquiry_id", item.getInquiryId());
             startActivity(intent);
         });
+        inquiryAdapter.setRadiusKm(sessionManager.getProximityRadiusKm());
         rvInquiries.setAdapter(inquiryAdapter);
 
-        FloatingActionButton fabPostInquiry = view.findViewById(R.id.fabPostInquiry);
+        View fabPostInquiry = view.findViewById(R.id.fabPostInquiry);
         if (fabPostInquiry != null) {
             fabPostInquiry.setOnClickListener(v -> showCreateInquiryDialog());
         }
@@ -435,6 +436,7 @@ public class FragmentCustomerFeed extends Fragment {
                 con.close();
 
                 mainHandler.post(() -> {
+                    if (!isAdded() || getContext() == null) return;
                     allInquiriesList.clear();
                     allInquiriesList.addAll(tempInquiries);
                     if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);

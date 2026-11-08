@@ -7,6 +7,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
@@ -29,19 +31,12 @@ public class PharmacyHomeActivity extends AppCompatActivity {
     private conSQL sqlHelper;
     private UserSessionManager sessionManager;
     private BottomNavigationView bottomNav;
+
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {});
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private boolean isPollingNotifs = false;
-
-    private final Runnable notifRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (isPollingNotifs) {
-                checkPharmacyNotifications();
-                mainHandler.postDelayed(this, 5000);
-            }
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +45,11 @@ public class PharmacyHomeActivity extends AppCompatActivity {
 
         sqlHelper = new conSQL();
         sessionManager = new UserSessionManager(this);
+
+        NotificationHelper.createChannels(this);
+        NotificationHelper.requestPermissionIfNeeded(this, requestPermissionLauncher);
+        NotificationScheduler.sync(this);
+        NotificationScheduler.schedulePeriodicCheck(this);
 
         TextView tvPharmacyWelcome = findViewById(R.id.tvPharmacyWelcome);
         TextView tvPharmacyLocation = findViewById(R.id.tvPharmacyLocation);
@@ -92,6 +92,9 @@ public class PharmacyHomeActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_pharmacy_notifications) {
                 loadFragment(new FragmentPharmacyNotifications());
                 return true;
+            } else if (itemId == R.id.nav_chats) {
+                loadFragment(new FragmentChats());
+                return true;
             } else if (itemId == R.id.nav_pharmacy_profile) {
                 loadFragment(new FragmentPharmacyProfile());
                 return true;
@@ -103,16 +106,13 @@ public class PharmacyHomeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        isPollingNotifs = true;
+        NotificationChecker.checkAsync(this);
         checkPharmacyNotifications();
-        mainHandler.postDelayed(notifRunnable, 5000);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        isPollingNotifs = false;
-        mainHandler.removeCallbacks(notifRunnable);
     }
 
     private void checkPharmacyNotifications() {
@@ -121,14 +121,26 @@ public class PharmacyHomeActivity extends AppCompatActivity {
             if (con == null) return;
 
             try {
-                String msgQuery = "SELECT COUNT(*) AS MsgCount FROM dbo.Messages WHERE ReceiverID = ? AND SenderRole = 'customer'";
-                PreparedStatement msgStmt = con.prepareStatement(msgQuery);
-                msgStmt.setInt(1, sessionManager.getUserId());
-                ResultSet msgRs = msgStmt.executeQuery();
-                int unreadMessages = 0;
-                if (msgRs.next()) {
-                    unreadMessages = msgRs.getInt("MsgCount");
+                NotificationState state = new NotificationState(PharmacyHomeActivity.this);
+                int pharmacyId = sessionManager.getUserId();
+                int lastMsg = state.get("pharmacy", pharmacyId, "msg");
+
+                if (lastMsg < 0) {
+                    String maxMsgSql = "SELECT ISNULL(MAX(MessageID), 0) FROM dbo.Messages WHERE ReceiverID = ? AND SenderRole = 'customer'";
+                    PreparedStatement maxPs = con.prepareStatement(maxMsgSql);
+                    maxPs.setInt(1, pharmacyId);
+                    ResultSet rs = maxPs.executeQuery();
+                    if (rs.next()) lastMsg = rs.getInt(1);
+                    maxPs.close();
+                    state.set("pharmacy", pharmacyId, "msg", lastMsg);
                 }
+
+                String msgQuery = "SELECT COUNT(*) FROM dbo.Messages m JOIN dbo.Inquiries i ON i.InquiryID = m.InquiryID WHERE m.ReceiverID = ? AND m.SenderRole = 'customer' AND m.MessageID > ? AND LOWER(ISNULL(i.Status, 'open')) <> 'fulfilled'";
+                PreparedStatement msgStmt = con.prepareStatement(msgQuery);
+                msgStmt.setInt(1, pharmacyId);
+                msgStmt.setInt(2, lastMsg);
+                ResultSet msgRs = msgStmt.executeQuery();
+                int unreadMessages = msgRs.next() ? msgRs.getInt(1) : 0;
                 msgStmt.close();
 
                 final int count = unreadMessages;
@@ -156,7 +168,7 @@ public class PharmacyHomeActivity extends AppCompatActivity {
     private void loadFragment(Fragment fragment) {
         getSupportFragmentManager()
                 .beginTransaction()
-                .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                .setCustomAnimations(R.anim.fragment_fade_enter, R.anim.fragment_fade_exit)
                 .replace(R.id.pharmacyFragmentContainer, fragment)
                 .commit();
     }

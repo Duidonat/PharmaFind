@@ -55,7 +55,24 @@ public class InquiryModel {
     public double getLongitude() { return longitude; }
     public double getDistanceKm() { return distanceKm; }
     public void setDistanceKm(double distanceKm) { this.distanceKm = distanceKm; }
+
     private boolean hasCustomerMessage = false;
     public boolean hasCustomerMessage() { return hasCustomerMessage; }
     public void setHasCustomerMessage(boolean hasCustomerMessage) { this.hasCustomerMessage = hasCustomerMessage; }
+
+    private boolean hasPharmacyMessage = false;
+    public boolean hasPharmacyMessage() { return hasPharmacyMessage; }
+    public void setHasPharmacyMessage(boolean hasPharmacyMessage) { this.hasPharmacyMessage = hasPharmacyMessage; }
+
+    private int lastPharmacyId = -1;
+    public int getLastPharmacyId() { return lastPharmacyId; }
+    public void setLastPharmacyId(int lastPharmacyId) { this.lastPharmacyId = lastPharmacyId; }
+
+    private String lastPharmacyName = "";
+    public String getLastPharmacyName() { return lastPharmacyName; }
+    public void setLastPharmacyName(String lastPharmacyName) { this.lastPharmacyName = lastPharmacyName; }
+
+    private boolean isNearbyRequest = false;
+    public boolean isNearbyRequest() { return isNearbyRequest; }
+    public void setIsNearbyRequest(boolean isNearbyRequest) { this.isNearbyRequest = isNearbyRequest; }
 }

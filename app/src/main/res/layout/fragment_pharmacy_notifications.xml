@@ -28,18 +28,60 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvPharmacyNotifTitle" />
 
+    <HorizontalScrollView
+        android:id="@+id/svPharmacyFilter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/tvPharmacyNotifSub">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupPharmacyFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleLine="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPharmacyAll"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="All" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPharmacyRequests"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nearby Requests (&lt; 5km)" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipPharmacyChats"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chats" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+    </HorizontalScrollView>
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshPharmacyNotifs"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvPharmacyNotifSub">
+        app:layout_constraintTop_toBottomOf="@id/svPharmacyFilter">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvPharmacyNotifications"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layoutAnimation="@anim/layout_animation_fall_down" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
@@ -51,7 +93,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvPharmacyNotifSub" />
+        app:layout_constraintTop_toBottomOf="@id/svPharmacyFilter" />
 
     <TextView
         android:id="@+id/tvPharmacyNotifEmptyState"
@@ -66,6 +108,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvPharmacyNotifSub" />
+        app:layout_constraintTop_toBottomOf="@id/svPharmacyFilter" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -134,24 +134,39 @@
                 style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnContact"
                 android:layout_width="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="4dp"
+                android:paddingHorizontal="10dp"
+                android:textSize="12sp"
                 app:icon="@drawable/ic_call"
+                app:iconPadding="4dp"
+                app:iconSize="16dp"
                 android:text="Call" />
 
             <com.google.android.material.button.MaterialButton
                 style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnChatWithPharmacy"
                 android:layout_width="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="4dp"
+                android:paddingHorizontal="10dp"
+                android:textSize="12sp"
                 app:icon="@drawable/ic_chat_bubble_outline"
+                app:iconPadding="4dp"
+                app:iconSize="16dp"
                 android:text="Chat" />
 
             <com.google.android.material.button.MaterialButton
                 style="@style/Widget.PharmaFind.Button.Small"
                 android:id="@+id/btnViewPharmacyProfile"
                 android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:paddingHorizontal="10dp"
+                android:textSize="12sp"
                 app:icon="@drawable/ic_location_on"
-                android:text="Profile &amp; Map" />
+                app:iconPadding="4dp"
+                app:iconSize="16dp"
+                android:text="Map &amp; Profile" />
 
         </LinearLayout>
 

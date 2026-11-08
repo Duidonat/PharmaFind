@@ -31,4 +31,6 @@
     <string name="pharmacy_name">Pharmacy Name</string>
     <string name="register_customer">Register Customer</string>
     <string name="register_pharmacy">Register Pharmacy</string>
+    <string name="nav_chats">Chats</string>
+    <string name="nav_notifications">Notifications</string>
 </resources>

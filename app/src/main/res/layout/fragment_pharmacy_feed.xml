@@ -82,7 +82,8 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvPharmacyInquiries"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:layoutAnimation="@anim/layout_animation_fall_down" />
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

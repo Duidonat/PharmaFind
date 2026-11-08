@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         sessionManager = new UserSessionManager(this);
         if (sessionManager.isLoggedIn()) {
+            NotificationScheduler.sync(this);
             if ("customer".equalsIgnoreCase(sessionManager.getRole())) {
                 startActivity(new Intent(MainActivity.this, CustomerHomeActivity.class));
                 finish();
@@ -173,6 +174,8 @@ public class MainActivity extends AppCompatActivity {
                     sessionManager.createCustomerSession(id, username, name, city, barangay, district);
                     sessionManager.setLocationCoordinates(lat, lng);
                     sessionManager.setRememberMe(rememberMe);
+                    NotificationScheduler.sync(MainActivity.this);
+                    NotificationScheduler.schedulePeriodicCheck(MainActivity.this);
 
                     con.close();
 
@@ -212,6 +215,8 @@ public class MainActivity extends AppCompatActivity {
                     sessionManager.createPharmacySession(id, username, name, city, barangay, district, status);
                     sessionManager.setLocationCoordinates(lat, lng);
                     sessionManager.setRememberMe(rememberMe);
+                    NotificationScheduler.sync(MainActivity.this);
+                    NotificationScheduler.schedulePeriodicCheck(MainActivity.this);
 
                     con.close();
 
