@@ -17,10 +17,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import java.sql.Connection;
@@ -36,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
 
     private conSQL sqlHelper;
     private UserSessionManager sessionManager;
+    private GoogleSignInClient mGoogleSignInClient;
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
+    private BottomSheetDialog currentLoginDialog;
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -91,6 +103,38 @@ public class MainActivity extends AppCompatActivity {
         if (btnRegister != null) btnRegister.setOnClickListener(registerClickListener);
         if (btnGetStarted != null) btnGetStarted.setOnClickListener(loginClickListener);
         if (tvLoginBottom != null) tvLoginBottom.setOnClickListener(loginClickListener);
+
+        // Configure Google Sign-In options with your Firebase Web Client ID
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken("578469341951-ld77iuqeug6mt5s1b2u3q201mk59j9cd.apps.googleusercontent.com")
+                .requestEmail()
+                .requestProfile()
+                .build();
+
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        googleSignInLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                    try {
+                        GoogleSignInAccount account = task.getResult(ApiException.class);
+                        if (account != null) {
+                            String email = account.getEmail();
+                            String name = account.getDisplayName();
+                            performGoogleAuthentication(email, name, currentLoginDialog);
+                        }
+                    } catch (ApiException e) {
+                        Log.e("MainActivity", "Google Sign-In ApiException: " + e.getStatusCode());
+                        UiMessage.show(currentLoginDialog, "Google Sign-In Account Selected: " + e.getMessage());
+                    } catch (Exception e) {
+                        Log.e("MainActivity", "Google Sign-In Exception: " + e.getMessage());
+                        UiMessage.show(currentLoginDialog, "Google Sign-In error: " + e.getMessage());
+                    }
+                }
+            }
+        );
     }
 
     private void showLoginDialog() {
@@ -107,7 +151,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (btnGoogleSignIn != null) {
             btnGoogleSignIn.setOnClickListener(v -> {
-                UiMessage.show(bottomSheetDialog, "Connecting to Google Sign-In...");
+                currentLoginDialog = bottomSheetDialog;
+                if (mGoogleSignInClient != null && googleSignInLauncher != null) {
+                    Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                    googleSignInLauncher.launch(signInIntent);
+                } else {
+                    UiMessage.show(bottomSheetDialog, "Initializing Google Sign-In...");
+                }
             });
         }
 

@@ -1,0 +1,84 @@
+{
+  "project_info": {
+    "project_number": "578469341951",
+    "project_id": "com-example-pharmafind",
+    "storage_bucket": "com-example-pharmafind.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578469341951:android:d2bac1cea537a0cc3cbaca",
+        "android_client_info": {
+          "package_name": "com.example.pharmafind"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "578469341951-di1lkbjc4lrm49gd4i0nuqqtg1p9d606.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pharmafind",
+            "certificate_hash": "d16715055d7e32790f77263c3c7100872b8e4f58"
+          }
+        },
+        {
+          "client_id": "578469341951-ld77iuqeug6mt5s1b2u3q201mk59j9cd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDptAkZBYoUHsWGlaUP4Ue4sE3UNKsvH4U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "578469341951-ld77iuqeug6mt5s1b2u3q201mk59j9cd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:578469341951:android:b66f1f9fe7b5923f3cbaca",
+        "android_client_info": {
+          "package_name": "com.ublc.pharmaFind"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "578469341951-5a1cog9e4ohs8v5goh4bp18b9r3r99r1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ublc.pharmaFind",
+            "certificate_hash": "d16715055d7e32790f77263c3c7100872b8e4f58"
+          }
+        },
+        {
+          "client_id": "578469341951-ld77iuqeug6mt5s1b2u3q201mk59j9cd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDptAkZBYoUHsWGlaUP4Ue4sE3UNKsvH4U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "578469341951-ld77iuqeug6mt5s1b2u3q201mk59j9cd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
