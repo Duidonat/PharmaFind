@@ -48,6 +48,7 @@ public class PharmacyHomeActivity extends AppCompatActivity {
 
         NotificationHelper.createChannels(this);
         NotificationHelper.requestPermissionIfNeeded(this, requestPermissionLauncher);
+        NotificationHelper.subscribeToFcmTopics();
         NotificationScheduler.sync(this);
         NotificationScheduler.schedulePeriodicCheck(this);
 

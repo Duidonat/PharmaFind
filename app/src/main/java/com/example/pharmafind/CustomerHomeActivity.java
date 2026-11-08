@@ -48,8 +48,16 @@ public class CustomerHomeActivity extends AppCompatActivity {
 
         NotificationHelper.createChannels(this);
         NotificationHelper.requestPermissionIfNeeded(this, requestPermissionLauncher);
+        NotificationHelper.subscribeToFcmTopics();
         NotificationScheduler.sync(this);
         NotificationScheduler.schedulePeriodicCheck(this);
+
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    android.util.Log.d("PharmaFCM", "FCM Registration Token: " + task.getResult());
+                }
+            });
 
         tvWelcomeUser = findViewById(R.id.tvWelcomeUser);
         tvUserLocation = findViewById(R.id.tvUserLocation);

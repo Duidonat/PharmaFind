@@ -148,6 +148,14 @@ public class NotificationHelper {
         }
     }
 
+    public static void subscribeToFcmTopics() {
+        try {
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("pharmafind_all");
+        } catch (Exception e) {
+            android.util.Log.e("NotificationHelper", "FCM topic subscribe error: " + e.getMessage());
+        }
+    }
+
     // --- Convenience wrappers ------------------------------------------------------
 
     /** Nearby customer request - urgent, high priority. */
