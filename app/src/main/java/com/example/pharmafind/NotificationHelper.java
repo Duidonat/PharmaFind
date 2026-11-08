@@ -159,7 +159,7 @@ public class NotificationHelper {
     public static void triggerRenderPushNotification(Context context, String title, String body, String type) {
         if (context == null) return;
         try {
-            String url = "https://pharmafind-push-server.onrender.com/notify";
+            String url = "https://pharmafind-025h.onrender.com/notify";
             org.json.JSONObject jsonBody = new org.json.JSONObject();
             jsonBody.put("title", title);
             jsonBody.put("body", body);
