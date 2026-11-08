@@ -28,8 +28,8 @@ app.get('/', (req, res) => {
 });
 
 app.post('/notify', async (req, res) => {
-  const { title, body, type } = req.body || {};
-  console.log(`[Push Alert Triggered] Title: "${title}" | Body: "${body}" | Type: "${type}"`);
+  const { title, body, type, sender_id, sender_role } = req.body || {};
+  console.log(`[Push Alert Triggered] Title: "${title}" | Body: "${body}" | Type: "${type}" | Sender: ${sender_role} #${sender_id}`);
 
   if (isFirebaseInitialized) {
     try {
@@ -41,7 +41,9 @@ app.post('/notify', async (req, res) => {
         data: {
           title: title || 'PharmaFind Alert',
           body: body || 'You have a new update.',
-          type: type || 'general'
+          type: type || 'general',
+          sender_id: String(sender_id || '-1'),
+          sender_role: String(sender_role || '')
         },
         topic: 'pharmafind_all'
       };

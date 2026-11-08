@@ -157,6 +157,10 @@ public class NotificationHelper {
     }
 
     public static void triggerRenderPushNotification(Context context, String title, String body, String type) {
+        triggerRenderPushNotification(context, title, body, type, -1, "");
+    }
+
+    public static void triggerRenderPushNotification(Context context, String title, String body, String type, int senderId, String senderRole) {
         if (context == null) return;
         try {
             String url = "https://pharmafind-025h.onrender.com/notify";
@@ -164,6 +168,8 @@ public class NotificationHelper {
             jsonBody.put("title", title);
             jsonBody.put("body", body);
             jsonBody.put("type", type);
+            jsonBody.put("sender_id", senderId);
+            jsonBody.put("sender_role", senderRole);
 
             com.android.volley.toolbox.JsonObjectRequest request = new com.android.volley.toolbox.JsonObjectRequest(
                 com.android.volley.Request.Method.POST,

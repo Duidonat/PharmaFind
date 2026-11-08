@@ -33,6 +33,8 @@ public class PharmaFirebaseMessagingService extends FirebaseMessagingService {
             }
         }
 
+        UserSessionManager sessionManager = new UserSessionManager(getApplicationContext());
+
         if (remoteMessage.getData().size() > 0) {
             if (remoteMessage.getData().containsKey("title")) {
                 title = remoteMessage.getData().get("title");
@@ -42,6 +44,18 @@ public class PharmaFirebaseMessagingService extends FirebaseMessagingService {
             }
             if (remoteMessage.getData().containsKey("type")) {
                 type = remoteMessage.getData().get("type");
+            }
+
+            // Suppress notification if sent by the logged-in user themselves
+            if (remoteMessage.getData().containsKey("sender_id") && remoteMessage.getData().containsKey("sender_role")) {
+                try {
+                    int senderId = Integer.parseInt(remoteMessage.getData().get("sender_id"));
+                    String senderRole = remoteMessage.getData().get("sender_role");
+                    if (sessionManager.isLoggedIn() && senderId == sessionManager.getUserId() && senderRole != null && senderRole.equalsIgnoreCase(sessionManager.getRole())) {
+                        Log.d(TAG, "Suppressed self-sent notification from " + senderRole + " ID: " + senderId);
+                        return;
+                    }
+                } catch (Exception ignored) {}
             }
         }
 
